@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/ml-pipeline/static/js/main.a467109a.js",
+    "index.html": "/ml-pipeline/index.html",
+    "main.a467109a.js.map": "/ml-pipeline/static/js/main.a467109a.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.a467109a.js"
+  ]
+}
