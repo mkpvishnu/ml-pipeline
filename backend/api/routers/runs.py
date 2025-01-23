@@ -55,42 +55,6 @@ async def execute_canvas_background(
         if db_run:
             RunCRUD.update(db=db, db_obj=db_run, obj_in=run_update)
 
-@router.post("/canvas/{canvas_id}/execute", response_model=CanvasRunResponse)
-async def execute_canvas(
-    canvas_id: str,
-    background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
-):
-    """Execute a canvas"""
-    # Get canvas
-    canvas = CanvasCRUD.get_by_canvas_id(db, canvas_id=canvas_id)
-    if not canvas:
-        raise HTTPException(status_code=404, detail="Canvas not found")
-    
-    # Validate canvas configuration
-    if not CanvasCRUD.validate_connections(canvas):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid canvas configuration"
-        )
-    
-    # Create run record
-    run = CanvasRunCreate(
-        canvas_id=canvas_id,
-        status=RunStatus.PENDING
-    )
-    db_run = RunCRUD.create(db=db, obj_in=run)
-    
-    # Start execution in background
-    background_tasks.add_task(
-        execute_canvas_background,
-        canvas=canvas,
-        run_id=db_run.run_id,
-        db=db
-    )
-    
-    return db_run
-
 @router.post("/canvas/{canvas_id}/run", response_model=CanvasRunResponse)
 def create_canvas_run(
     canvas_id: str,
@@ -100,6 +64,31 @@ def create_canvas_run(
     run = RunCRUD.create_run(db=db, canvas_id=canvas_id)
     if not run:
         raise HTTPException(status_code=404, detail="Failed to create run")
+    return run
+
+@router.post("/{run_id}/execute", response_model=CanvasRunResponse)
+async def execute_run(
+    run_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """Execute a specific run."""
+    run = RunCRUD.get_run(db=db, run_id=run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    canvas = CanvasCRUD.get(db=db, canvas_id=run.canvas_id)
+    if not canvas:
+        raise HTTPException(status_code=404, detail="Canvas not found")
+
+    # Start execution in background
+    background_tasks.add_task(
+        execute_canvas_background,
+        canvas=canvas,
+        run_id=run_id,
+        db=db
+    )
+
     return run
 
 @router.get("/canvas/{canvas_id}/runs", response_model=List[CanvasRunResponse])
