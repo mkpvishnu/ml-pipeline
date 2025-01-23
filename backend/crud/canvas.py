@@ -2,9 +2,13 @@ from typing import List, Optional, Union, Dict, Any
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 import uuid
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 
-from backend.models.database import Canvas
-from backend.schemas.canvas import CanvasCreate, CanvasUpdate
+from backend.models.database import Canvas, CanvasModuleVersion
+from backend.schemas import canvas as canvas_schema
+
+logger = logging.getLogger(__name__)
 
 class CanvasCRUD:
     @staticmethod
@@ -29,59 +33,75 @@ class CanvasCRUD:
         return query.offset(skip).limit(limit).all()
 
     @staticmethod
-    def create(db: Session, *, obj_in: CanvasCreate) -> Canvas:
-        obj_in_data = jsonable_encoder(obj_in)
-        # Generate a unique canvas_id
-        obj_in_data["canvas_id"] = str(uuid.uuid4())
-        db_obj = Canvas(**obj_in_data)
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
+    def create(db: Session, *, account_id: int, canvas_in: canvas_schema.CanvasCreate) -> Optional[Canvas]:
+        try:
+            canvas_data = canvas_in.model_dump()
+            canvas_data["account_id"] = account_id
+            canvas_data["canvas_id"] = str(uuid.uuid4())
+            
+            db_canvas = Canvas(**canvas_data)
+            db.add(db_canvas)
+            db.commit()
+            db.refresh(db_canvas)
+            return db_canvas
+        except SQLAlchemyError as e:
+            logger.error(f"Error creating canvas: {str(e)}")
+            db.rollback()
+            return None
 
     @staticmethod
-    def update(
-        db: Session, 
-        *, 
-        db_obj: Canvas, 
-        obj_in: Union[CanvasUpdate, Dict[str, Any]]
-    ) -> Canvas:
-        obj_data = jsonable_encoder(db_obj)
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        else:
-            update_data = obj_in.model_dump(exclude_unset=True)
-        
-        # Handle module flow updates
-        if "module_config" in update_data:
-            # Ensure execution order is maintained
-            modules = list(update_data["module_config"].values())
-            modules.sort(key=lambda x: x["execution_order"])
-            
-            # Update positions and connections
-            for i, module in enumerate(modules):
-                module["execution_order"] = i + 1
-            
-            # Update the module_config with sorted modules
-            update_data["module_config"] = {
-                m["module_id"]: m for m in modules
-            }
-        
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
-        
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
+    def get(db: Session, canvas_id: str) -> Optional[Canvas]:
+        try:
+            return db.query(Canvas).filter(Canvas.canvas_id == canvas_id).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Error getting canvas: {str(e)}")
+            return None
 
     @staticmethod
-    def delete(db: Session, *, id: int) -> Canvas:
-        obj = db.query(Canvas).get(id)
-        db.delete(obj)
-        db.commit()
-        return obj
+    def get_by_account(db: Session, account_id: int, skip: int = 0, limit: int = 100) -> List[Canvas]:
+        try:
+            return db.query(Canvas)\
+                .filter(Canvas.account_id == account_id)\
+                .offset(skip)\
+                .limit(limit)\
+                .all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error getting canvases for account: {str(e)}")
+            return []
+
+    @staticmethod
+    def update(db: Session, *, canvas_id: str, canvas_in: canvas_schema.CanvasUpdate) -> Optional[Canvas]:
+        try:
+            db_canvas = CanvasCRUD.get(db, canvas_id)
+            if not db_canvas:
+                return None
+            
+            update_data = canvas_in.model_dump(exclude_unset=True)
+            for field, value in update_data.items():
+                setattr(db_canvas, field, value)
+            
+            db.commit()
+            db.refresh(db_canvas)
+            return db_canvas
+        except SQLAlchemyError as e:
+            logger.error(f"Error updating canvas: {str(e)}")
+            db.rollback()
+            return None
+
+    @staticmethod
+    def delete(db: Session, canvas_id: str) -> bool:
+        try:
+            db_canvas = CanvasCRUD.get(db, canvas_id)
+            if not db_canvas:
+                return False
+            
+            db.delete(db_canvas)
+            db.commit()
+            return True
+        except SQLAlchemyError as e:
+            logger.error(f"Error deleting canvas: {str(e)}")
+            db.rollback()
+            return False
 
     @staticmethod
     def get_execution_order(canvas: Canvas) -> List[str]:
@@ -114,4 +134,33 @@ class CanvasCRUD:
             if conn["connection_type"] not in ["sequential", "parallel", "conditional"]:
                 return False
         
-        return True 
+        return True
+
+    @staticmethod
+    def add_module_version(
+        db: Session, 
+        *,
+        canvas_id: str,
+        module_id: str,
+        version: str,
+        position_x: float = 0,
+        position_y: float = 0,
+        config: Dict[str, Any] = None
+    ) -> Optional[CanvasModuleVersion]:
+        try:
+            module_version = CanvasModuleVersion(
+                canvas_id=canvas_id,
+                module_id=module_id,
+                version=version,
+                position_x=position_x,
+                position_y=position_y,
+                config=config or {}
+            )
+            db.add(module_version)
+            db.commit()
+            db.refresh(module_version)
+            return module_version
+        except SQLAlchemyError as e:
+            logger.error(f"Error adding module version to canvas: {str(e)}")
+            db.rollback()
+            return None 

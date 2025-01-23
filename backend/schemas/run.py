@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 from enum import Enum
@@ -10,32 +10,48 @@ class RunStatus(str, Enum):
     FAILED = "failed"
     CANCELLED = "cancelled"
 
-class ModuleRunResult(BaseModel):
-    """Schema for individual module run results"""
+class ModuleRunResultBase(BaseModel):
     module_id: str
-    version: str
-    status: RunStatus
-    started_at: Optional[datetime] = None
+    status: str = "pending"
+    metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    error: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    cache_location: Optional[str] = None
+
+class ModuleRunResultCreate(ModuleRunResultBase):
+    run_id: str
+
+class ModuleRunResult(ModuleRunResultBase):
+    id: int
+    run_id: str
+    started_at: datetime
     completed_at: Optional[datetime] = None
-    execution_time: Optional[float] = None
-    output: Optional[Dict] = None
-    error: Optional[Dict] = None
-    logs: List[str] = Field(default_factory=list)
-    metrics: Dict = Field(default_factory=dict)
+    input_hash: Optional[str] = None
+    output_hash: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 class CanvasRunBase(BaseModel):
-    """Base Canvas Run Schema"""
     canvas_id: str
-    status: RunStatus = RunStatus.PENDING
-    module_runs: Dict[str, ModuleRunResult] = Field(default_factory=dict)
-    metrics: Dict = Field(default_factory=dict)
-    logs: List[str] = Field(default_factory=list)
-    error: Optional[Dict] = None
-    cache_config: Dict = Field(default_factory=dict)
+    status: str = "pending"
+    module_runs: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    metrics: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    logs: Optional[List[str]] = Field(default_factory=list)
+    error: Optional[Dict[str, Any]] = None
+    cache_config: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 class CanvasRunCreate(CanvasRunBase):
-    """Schema for creating a canvas run"""
     pass
+
+class CanvasRun(CanvasRunBase):
+    id: int
+    run_id: str
+    started_at: datetime
+    completed_at: Optional[datetime] = None
+    module_run_results: List[ModuleRunResult] = []
+
+    class Config:
+        from_attributes = True
 
 class CanvasRunUpdate(BaseModel):
     """Schema for updating a canvas run"""
@@ -58,10 +74,9 @@ class CanvasRunResponse(CanvasRunBase):
         from_attributes = True
 
 class ModuleRunStats(BaseModel):
-    """Schema for module run statistics"""
-    total_runs: int
-    success_rate: float
-    avg_execution_time: float
-    last_run_status: RunStatus
-    last_run_at: Optional[datetime]
-    error_count: int 
+    total_runs: int = 0
+    completed_runs: int = 0
+    failed_runs: int = 0
+    average_duration: Optional[float] = None
+    success_rate: Optional[float] = None
+    error_count: int = 0 

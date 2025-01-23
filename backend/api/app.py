@@ -7,25 +7,32 @@ from backend.core.config import get_settings
 settings = get_settings()
 
 app = FastAPI(
-    title="ML Pipeline API",
-    description="API for ML Pipeline Backend",
-    version="1.0.0"
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_PREFIX}/openapi.json"
 )
 
-# Configure CORS
+# Set up CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=["*"],  # In production, replace with actual origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
-app.include_router(accounts.router, prefix="/api/accounts", tags=["accounts"])
-app.include_router(canvases.router, prefix="/api/canvases", tags=["canvases"])
-app.include_router(modules.router, prefix="/api/modules", tags=["modules"])
-app.include_router(runs.router, prefix="/api/runs", tags=["runs"])
+app.include_router(accounts.router, prefix=f"{settings.API_V1_PREFIX}/accounts", tags=["accounts"])
+app.include_router(canvases.router, prefix=f"{settings.API_V1_PREFIX}/canvases", tags=["canvases"])
+app.include_router(modules.router, prefix=f"{settings.API_V1_PREFIX}/modules", tags=["modules"])
+app.include_router(runs.router, prefix=f"{settings.API_V1_PREFIX}/runs", tags=["runs"])
+
+@app.get("/")
+def root():
+    return {
+        "message": "Welcome to ML Pipeline API",
+        "docs_url": "/docs",
+        "redoc_url": "/redoc"
+    }
 
 @app.get("/api/health")
 def health_check():

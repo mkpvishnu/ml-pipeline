@@ -4,6 +4,8 @@ from sqlalchemy import desc, func
 from fastapi.encoders import jsonable_encoder
 import uuid
 from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 
 from backend.models.database import CanvasRun, ModuleRunResult
 from backend.schemas.run import (
@@ -12,6 +14,8 @@ from backend.schemas.run import (
     RunStatus,
     ModuleRunStats
 )
+
+logger = logging.getLogger(__name__)
 
 class RunCRUD:
     @staticmethod
@@ -125,4 +129,153 @@ class RunCRUD:
             last_run_status=last_run.status if last_run else RunStatus.PENDING,
             last_run_at=last_run.completed_at if last_run else None,
             error_count=result.error_count or 0
-        ) 
+        )
+
+    @staticmethod
+    def create_run(db: Session, *, canvas_id: str) -> Optional[CanvasRun]:
+        try:
+            run = CanvasRun(
+                run_id=str(uuid.uuid4()),
+                canvas_id=canvas_id,
+                status="pending",
+                started_at=datetime.utcnow(),
+                module_runs={},
+                metrics={},
+                logs=[],
+                error=None,
+                cache_config={}
+            )
+            db.add(run)
+            db.commit()
+            db.refresh(run)
+            return run
+        except SQLAlchemyError as e:
+            logger.error(f"Error creating canvas run: {str(e)}")
+            db.rollback()
+            return None
+
+    @staticmethod
+    def get_run(db: Session, run_id: str) -> Optional[CanvasRun]:
+        try:
+            return db.query(CanvasRun).filter(CanvasRun.run_id == run_id).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Error getting run: {str(e)}")
+            return None
+
+    @staticmethod
+    def get_runs_by_canvas(db: Session, canvas_id: str, skip: int = 0, limit: int = 100) -> List[CanvasRun]:
+        try:
+            return db.query(CanvasRun)\
+                .filter(CanvasRun.canvas_id == canvas_id)\
+                .order_by(CanvasRun.started_at.desc())\
+                .offset(skip)\
+                .limit(limit)\
+                .all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error getting runs for canvas: {str(e)}")
+            return []
+
+    @staticmethod
+    def update_run_status(
+        db: Session,
+        *,
+        run_id: str,
+        status: str,
+        metrics: Dict[str, Any] = None,
+        error: Dict[str, Any] = None
+    ) -> Optional[CanvasRun]:
+        try:
+            run = RunCRUD.get_run(db, run_id)
+            if not run:
+                return None
+
+            run.status = status
+            if status == "completed":
+                run.completed_at = datetime.utcnow()
+            if metrics:
+                run.metrics = metrics
+            if error:
+                run.error = error
+
+            db.commit()
+            db.refresh(run)
+            return run
+        except SQLAlchemyError as e:
+            logger.error(f"Error updating run status: {str(e)}")
+            db.rollback()
+            return None
+
+    @staticmethod
+    def create_module_result(
+        db: Session,
+        *,
+        run_id: str,
+        module_id: str,
+        status: str = "pending"
+    ) -> Optional[ModuleRunResult]:
+        try:
+            result = ModuleRunResult(
+                run_id=run_id,
+                module_id=module_id,
+                status=status,
+                started_at=datetime.utcnow(),
+                metrics={},
+                error={}
+            )
+            db.add(result)
+            db.commit()
+            db.refresh(result)
+            return result
+        except SQLAlchemyError as e:
+            logger.error(f"Error creating module run result: {str(e)}")
+            db.rollback()
+            return None
+
+    @staticmethod
+    def update_module_result(
+        db: Session,
+        *,
+        run_id: str,
+        module_id: str,
+        status: str,
+        metrics: Dict[str, Any] = None,
+        cache_location: str = None,
+        error: Dict[str, Any] = None
+    ) -> Optional[ModuleRunResult]:
+        try:
+            result = db.query(ModuleRunResult)\
+                .filter(
+                    ModuleRunResult.run_id == run_id,
+                    ModuleRunResult.module_id == module_id
+                ).first()
+            
+            if not result:
+                return None
+
+            result.status = status
+            if status == "completed":
+                result.completed_at = datetime.utcnow()
+            if metrics:
+                result.metrics = metrics
+            if cache_location:
+                result.cache_location = cache_location
+            if error:
+                result.error = error
+
+            db.commit()
+            db.refresh(result)
+            return result
+        except SQLAlchemyError as e:
+            logger.error(f"Error updating module run result: {str(e)}")
+            db.rollback()
+            return None
+
+    @staticmethod
+    def get_module_results(db: Session, run_id: str) -> List[ModuleRunResult]:
+        try:
+            return db.query(ModuleRunResult)\
+                .filter(ModuleRunResult.run_id == run_id)\
+                .all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error getting module results: {str(e)}")
+            return [] 

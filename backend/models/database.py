@@ -2,13 +2,41 @@ from datetime import datetime
 from typing import List, Dict, Optional
 from sqlalchemy import (
     Column, Integer, String, DateTime, Boolean, 
-    ForeignKey, JSON, Text, Enum, Float, Table, UniqueConstraint
+    ForeignKey, JSON, Text, Enum, Float, Table, UniqueConstraint,
+    create_engine
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-import enum
+from sqlalchemy.orm import relationship, sessionmaker
 
+from backend.core.config import get_settings
+
+settings = get_settings()
+
+# Create database URL
+DATABASE_URL = f"mysql+pymysql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
+
+# Create SQLAlchemy engine
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_timeout=settings.DB_POOL_TIMEOUT,
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    echo=settings.DB_ECHO,
+    connect_args={
+        "connect_timeout": 60,
+        "charset": "utf8mb4"
+    }
+)
+
+# Create sessionmaker
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Create base class for declarative models
 Base = declarative_base()
+
+# Import enums
+import enum
 
 class AccountType(enum.Enum):
     PERSONAL = "personal"
@@ -50,7 +78,7 @@ class Canvas(Base):
     
     # Metadata
     tags = Column(JSON, default=[])
-    meta_info = Column(JSON, default={})  # Changed from metadata to meta_info
+    meta_info = Column(JSON, default={})
 
     # Relationships
     account = relationship("Account", back_populates="canvases")
@@ -73,7 +101,7 @@ class Module(Base):
     # Module metadata
     category = Column(String(50))  # For organization in UI
     tags = Column(JSON, default=[])
-    meta_info = Column(JSON, default={})  # Changed from metadata to meta_info
+    meta_info = Column(JSON, default={})
 
     # Relationships
     account = relationship("Account", back_populates="modules")
@@ -122,18 +150,14 @@ class CanvasRun(Base):
     id = Column(Integer, primary_key=True)
     run_id = Column(String(50), unique=True, nullable=False)  # UUID
     canvas_id = Column(String(50), ForeignKey('canvases.canvas_id'))
-    status = Column(String(50), default="pending")  # pending, running, completed, failed
-    started_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(String(50))  # pending, running, completed, failed, cancelled
+    started_at = Column(DateTime)
     completed_at = Column(DateTime)
-    
-    # Run details
-    module_runs = Column(JSON, default={})  # Details of each module run
-    metrics = Column(JSON, default={})  # Run metrics and results
+    module_runs = Column(JSON)  # Store individual module run results
+    metrics = Column(JSON, default={})  # Overall run metrics
     logs = Column(JSON, default=[])  # Run logs
-    error = Column(JSON, default={})  # Error details if failed
-
-    # Cache configuration
-    cache_config = Column(JSON, default={})  # Cache settings and locations
+    error = Column(JSON)  # Error information if failed
+    cache_config = Column(JSON, default={})  # Cache configuration for this run
 
     # Relationships
     canvas = relationship("Canvas", back_populates="runs")
@@ -145,16 +169,16 @@ class ModuleRunResult(Base):
     id = Column(Integer, primary_key=True)
     run_id = Column(String(50), ForeignKey('canvas_runs.run_id'))
     module_id = Column(String(50), ForeignKey('module_versions.module_id'))
-    status = Column(String(50), default="pending")
+    status = Column(String(50), default="pending")  # pending, running, completed, failed
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime)
     
     # Run details
     input_hash = Column(String(255))  # Hash of input data for caching
     output_hash = Column(String(255))  # Hash of output data
-    metrics = Column(JSON, default={})
+    metrics = Column(JSON, default={})  # Module-specific metrics
     cache_location = Column(String(512))  # S3/local path to cached results
-    error = Column(JSON, default={})
+    error = Column(JSON, default={})  # Error details if failed
 
     # Relationships
     canvas_run = relationship("CanvasRun", back_populates="module_run_results")
@@ -172,7 +196,7 @@ class ModuleCache(Base):
     
     # Cache details
     location = Column(String(512), nullable=False)  # S3/local path
-    meta_info = Column(JSON, default={})  # Changed from metadata to meta_info
+    meta_info = Column(JSON, default={})
     is_valid = Column(Boolean, default=True)
 
     class Config:
