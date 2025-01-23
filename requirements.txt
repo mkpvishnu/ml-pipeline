@@ -1,0 +1,12 @@
+sqlalchemy>=2.0.0
+PyMySQL>=1.1.0
+cryptography>=41.0.0  # Required for PyMySQL
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.0
+boto3>=1.34.0
+alembic>=1.13.0
+fastapi>=0.109.0
+uvicorn>=0.27.0
+email-validator>=2.1.0
+python-multipart>=0.0.6 
