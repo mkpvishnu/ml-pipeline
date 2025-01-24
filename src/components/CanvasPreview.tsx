@@ -18,6 +18,8 @@ interface Props {
   onClose: () => void;
 }
 
+const DRAWER_WIDTH = 500;
+
 const CanvasPreview: React.FC<Props> = ({ open, onClose }) => {
   const [isRunning, setIsRunning] = React.useState(false);
   const [output, setOutput] = React.useState<string>('');
@@ -48,57 +50,82 @@ Execution completed successfully!`);
     }, 2000);
   };
 
+  if (!open) return null;
+
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      variant="persistent"
-      sx={{ width: 500, flexShrink: 0 }}
+    <Box
+      sx={{
+        width: DRAWER_WIDTH,
+        height: '100%',
+        bgcolor: 'background.paper',
+        borderLeft: 1,
+        borderColor: 'divider',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxShadow: 24,
+        transition: (theme) => theme.transitions.create(['transform'], {
+          easing: theme.transitions.easing.easeOut,
+          duration: theme.transitions.duration.enteringScreen,
+        }),
+        transform: open ? 'translateX(0)' : 'translateX(100%)',
+      }}
     >
-      <Box sx={{ width: 500 }}>
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">Canvas Preview</Typography>
-          <IconButton onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <Divider />
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              startIcon={isRunning ? <CircularProgress size={20} /> : <PlayArrowIcon />}
-              onClick={handleRunCanvas}
-              disabled={isRunning}
-            >
-              {isRunning ? 'Running...' : 'Run Canvas'}
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={() => setOutput('')}
-              disabled={isRunning}
-            >
-              Clear Output
-            </Button>
-          </Box>
-          <Paper
-            sx={{
-              p: 2,
-              bgcolor: 'grey.900',
-              color: 'common.white',
-              fontFamily: 'monospace',
-              fontSize: '0.875rem',
-              minHeight: 'calc(100vh - 200px)',
-              overflow: 'auto',
-            }}
-          >
-            <pre>{output || 'No output yet. Click "Run Canvas" to execute the pipeline.'}</pre>
-          </Paper>
-        </Box>
+      <Box sx={{ 
+        p: 2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: 1,
+        borderColor: 'divider',
+      }}>
+        <Typography variant="h6">Canvas Preview</Typography>
+        <IconButton onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
       </Box>
-    </Drawer>
+
+      <Box sx={{ 
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        overflow: 'hidden',
+      }}>
+        <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            startIcon={isRunning ? <CircularProgress size={20} /> : <PlayArrowIcon />}
+            onClick={handleRunCanvas}
+            disabled={isRunning}
+          >
+            {isRunning ? 'Running...' : 'Run Canvas'}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={() => setOutput('')}
+            disabled={isRunning}
+          >
+            Clear Output
+          </Button>
+        </Box>
+
+        <Paper
+          sx={{
+            flex: 1,
+            p: 2,
+            bgcolor: 'grey.900',
+            color: 'common.white',
+            fontFamily: 'monospace',
+            fontSize: '0.875rem',
+            overflow: 'auto',
+          }}
+        >
+          <pre>{output || 'No output yet. Click "Run Canvas" to execute the pipeline.'}</pre>
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 

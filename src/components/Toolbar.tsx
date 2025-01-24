@@ -3,30 +3,25 @@ import {
   AppBar,
   Toolbar as MuiToolbar,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Box,
+  IconButton,
+  Tooltip,
+  Typography,
+  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  IconButton,
-  Tooltip,
-  Menu,
+  MenuItem,
+  FormControl,
   FormControlLabel,
   Switch,
-  Typography,
-  Divider,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SaveIcon from '@mui/icons-material/Save';
 import HistoryIcon from '@mui/icons-material/History';
 import ScheduleIcon from '@mui/icons-material/Schedule';
-import AddIcon from '@mui/icons-material/Add';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -34,22 +29,13 @@ import ShareIcon from '@mui/icons-material/Share';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const Toolbar: React.FC = () => {
-  const [newCanvasDialog, setNewCanvasDialog] = useState(false);
-  const [newModuleDialog, setNewModuleDialog] = useState(false);
+interface Props {
+  onPreviewOpen: () => void;
+}
+
+const Toolbar: React.FC<Props> = ({ onPreviewOpen }) => {
   const [historyDialog, setHistoryDialog] = useState(false);
   const [scheduleDialog, setScheduleDialog] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-
-  const handleNewCanvas = () => {
-    setNewCanvasDialog(false);
-    // TODO: Implement canvas creation
-  };
-
-  const handleNewModule = () => {
-    setNewModuleDialog(false);
-    // TODO: Implement module creation
-  };
 
   return (
     <>
@@ -82,11 +68,27 @@ const Toolbar: React.FC = () => {
               startIcon={<VisibilityIcon />}
               variant="outlined"
               size="small"
-              onClick={() => {
-                // TODO: Implement preview functionality
-              }}
+              onClick={onPreviewOpen}
             >
               Preview
+            </Button>
+
+            <Button
+              startIcon={<HistoryIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => setHistoryDialog(true)}
+            >
+              History
+            </Button>
+
+            <Button
+              startIcon={<ScheduleIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => setScheduleDialog(true)}
+            >
+              Schedule
             </Button>
           </Box>
 
@@ -141,63 +143,6 @@ const Toolbar: React.FC = () => {
           </Typography>
         </MuiToolbar>
       </AppBar>
-
-      {/* New Canvas Dialog */}
-      <Dialog open={newCanvasDialog} onClose={() => setNewCanvasDialog(false)}>
-        <DialogTitle>Create New Canvas</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Canvas Name"
-            fullWidth
-            variant="outlined"
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            fullWidth
-            multiline
-            rows={3}
-            variant="outlined"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setNewCanvasDialog(false)}>Cancel</Button>
-          <Button onClick={handleNewCanvas} variant="contained">Create</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* New Module Dialog */}
-      <Dialog open={newModuleDialog} onClose={() => setNewModuleDialog(false)}>
-        <DialogTitle>Create New Module</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Module Name"
-            fullWidth
-            variant="outlined"
-          />
-          <TextField
-            select
-            margin="dense"
-            label="Module Type"
-            fullWidth
-            variant="outlined"
-          >
-            <MenuItem value="data">Data Source</MenuItem>
-            <MenuItem value="preprocess">Preprocessing</MenuItem>
-            <MenuItem value="training">Training</MenuItem>
-            <MenuItem value="validation">Validation</MenuItem>
-            <MenuItem value="deployment">Deployment</MenuItem>
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setNewModuleDialog(false)}>Cancel</Button>
-          <Button onClick={handleNewModule} variant="contained">Create</Button>
-        </DialogActions>
-      </Dialog>
 
       {/* History Dialog */}
       <Dialog 

@@ -62,6 +62,8 @@ const defaultModules: Record<string, Module[]> = {
   ],
 };
 
+const DRAWER_WIDTH = 400;
+
 const ComponentDrawer: React.FC<Props> = ({ open, onClose, componentId, componentType }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [modules, setModules] = useState<Module[]>(defaultModules[componentType] || []);
@@ -111,171 +113,207 @@ const ComponentDrawer: React.FC<Props> = ({ open, onClose, componentId, componen
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      variant="persistent"
-      sx={{ width: 400, flexShrink: 0 }}
+    <Box
+      sx={{
+        width: DRAWER_WIDTH,
+        height: '100%',
+        bgcolor: 'background.paper',
+        borderLeft: 1,
+        borderColor: 'divider',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxShadow: 24,
+        transition: (theme) => theme.transitions.create(['transform'], {
+          easing: theme.transitions.easing.easeOut,
+          duration: theme.transitions.duration.enteringScreen,
+        }),
+        transform: open ? 'translateX(0)' : 'translateX(100%)',
+      }}
     >
-      <Box sx={{ width: 400 }}>
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">Component Settings</Typography>
-          <IconButton onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <Divider />
-        <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-          <Tab label="Modules" />
-          <Tab label="Output" />
-        </Tabs>
+      <Box sx={{ 
+        p: 2, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        borderBottom: 1,
+        borderColor: 'divider',
+      }}>
+        <Typography variant="h6">Component Settings</Typography>
+        <IconButton onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
 
-        <Box sx={{ p: 2 }}>
-          {activeTab === 0 && (
-            <>
-              <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleCreateModule}
-                >
-                  Create Module
-                </Button>
-              </Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Default Modules
-              </Typography>
-              <List>
-                {modules
-                  .filter(m => m.type === 'default')
-                  .map(module => (
-                    <ListItem
-                      key={module.id}
-                      secondaryAction={
-                        <Button
-                          variant={module.isActive ? 'contained' : 'outlined'}
-                          size="small"
-                          onClick={() => handleUseModule(module.id)}
-                        >
-                          {module.isActive ? 'Active' : 'Use'}
-                        </Button>
-                      }
-                    >
-                      <ListItemText
-                        primary={module.name}
-                        onClick={() => {
-                          setSelectedModule(module);
-                          setEditingCode(module.code);
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-              </List>
-              <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-                Custom Modules
-              </Typography>
-              <List>
-                {modules
-                  .filter(m => m.type === 'custom')
-                  .map(module => (
-                    <ListItem
-                      key={module.id}
-                      secondaryAction={
-                        <Button
-                          variant={module.isActive ? 'contained' : 'outlined'}
-                          size="small"
-                          onClick={() => handleUseModule(module.id)}
-                        >
-                          {module.isActive ? 'Active' : 'Use'}
-                        </Button>
-                      }
-                    >
-                      <ListItemText
-                        primary={module.name}
-                        onClick={() => {
-                          setSelectedModule(module);
-                          setEditingCode(module.code);
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-              </List>
+      <Tabs 
+        value={activeTab} 
+        onChange={(_, newValue) => setActiveTab(newValue)}
+        sx={{ 
+          borderBottom: 1,
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Tab label="Modules" />
+        <Tab label="Output" />
+      </Tabs>
 
-              {selectedModule && (
-                <Box sx={{ mt: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="subtitle2">
-                      {selectedModule.name} Code
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      {isEditing ? (
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={handleSaveCode}
-                        >
-                          Save
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<CodeIcon />}
-                          onClick={() => setIsEditing(true)}
-                        >
-                          Edit
-                        </Button>
-                      )}
+      <Box sx={{ 
+        flex: 1,
+        overflow: 'auto',
+        p: 2,
+      }}>
+        {activeTab === 0 && (
+          <>
+            <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleCreateModule}
+              >
+                Create Module
+              </Button>
+            </Box>
+            
+            <Typography variant="subtitle2" gutterBottom>
+              Default Modules
+            </Typography>
+            <List>
+              {modules
+                .filter(m => m.type === 'default')
+                .map(module => (
+                  <ListItem
+                    key={module.id}
+                    secondaryAction={
+                      <Button
+                        variant={module.isActive ? 'contained' : 'outlined'}
+                        size="small"
+                        onClick={() => handleUseModule(module.id)}
+                      >
+                        {module.isActive ? 'Active' : 'Use'}
+                      </Button>
+                    }
+                  >
+                    <ListItemText
+                      primary={module.name}
+                      onClick={() => {
+                        setSelectedModule(module);
+                        setEditingCode(module.code);
+                      }}
+                    />
+                  </ListItem>
+                ))}
+            </List>
+
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+              Custom Modules
+            </Typography>
+            <List>
+              {modules
+                .filter(m => m.type === 'custom')
+                .map(module => (
+                  <ListItem
+                    key={module.id}
+                    secondaryAction={
+                      <Button
+                        variant={module.isActive ? 'contained' : 'outlined'}
+                        size="small"
+                        onClick={() => handleUseModule(module.id)}
+                      >
+                        {module.isActive ? 'Active' : 'Use'}
+                      </Button>
+                    }
+                  >
+                    <ListItemText
+                      primary={module.name}
+                      onClick={() => {
+                        setSelectedModule(module);
+                        setEditingCode(module.code);
+                      }}
+                    />
+                  </ListItem>
+                ))}
+            </List>
+
+            {selectedModule && (
+              <Box sx={{ mt: 2 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  mb: 1 
+                }}>
+                  <Typography variant="subtitle2">
+                    {selectedModule.name} Code
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {isEditing ? (
                       <Button
                         variant="contained"
                         size="small"
-                        startIcon={<PlayArrowIcon />}
-                        onClick={handleExecuteCode}
+                        onClick={handleSaveCode}
                       >
-                        Run
+                        Save
                       </Button>
-                    </Box>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<CodeIcon />}
+                        onClick={() => setIsEditing(true)}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<PlayArrowIcon />}
+                      onClick={handleExecuteCode}
+                    >
+                      Run
+                    </Button>
                   </Box>
-                  <TextField
-                    multiline
-                    fullWidth
-                    rows={10}
-                    value={isEditing ? editingCode : selectedModule.code}
-                    onChange={(e) => setEditingCode(e.target.value)}
-                    disabled={!isEditing}
-                    sx={{
-                      '& .MuiInputBase-root': {
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                      },
-                    }}
-                  />
                 </Box>
-              )}
-            </>
-          )}
+                <TextField
+                  multiline
+                  fullWidth
+                  rows={10}
+                  value={isEditing ? editingCode : selectedModule.code}
+                  onChange={(e) => setEditingCode(e.target.value)}
+                  disabled={!isEditing}
+                  sx={{
+                    '& .MuiInputBase-root': {
+                      fontFamily: 'monospace',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          </>
+        )}
 
-          {activeTab === 1 && (
-            <Paper
-              sx={{
-                p: 2,
-                bgcolor: 'grey.900',
-                color: 'common.white',
-                fontFamily: 'monospace',
-                fontSize: '0.875rem',
-                minHeight: 200,
-                maxHeight: 400,
-                overflow: 'auto',
-              }}
-            >
-              <pre>{output || 'No output yet'}</pre>
-            </Paper>
-          )}
-        </Box>
+        {activeTab === 1 && (
+          <Paper
+            sx={{
+              p: 2,
+              bgcolor: 'grey.900',
+              color: 'common.white',
+              fontFamily: 'monospace',
+              fontSize: '0.875rem',
+              height: 'calc(100vh - 200px)',
+              overflow: 'auto',
+            }}
+          >
+            <pre>{output || 'No output yet'}</pre>
+          </Paper>
+        )}
       </Box>
-    </Drawer>
+    </Box>
   );
 };
 

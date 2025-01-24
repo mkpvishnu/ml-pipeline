@@ -6,6 +6,10 @@ import Toolbar from './components/Toolbar';
 import ComponentDrawer from './components/ComponentDrawer';
 import CanvasPreview from './components/CanvasPreview';
 
+const COMPONENT_DRAWER_WIDTH = 400;
+const PREVIEW_DRAWER_WIDTH = 500;
+const MODULE_PALETTE_WIDTH = 280;
+
 const theme = createTheme({
   palette: {
     mode: 'light',
@@ -66,41 +70,83 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ 
-        display: 'flex', 
-        height: '100vh', 
+        display: 'flex',
+        height: '100vh',
         overflow: 'hidden',
-        bgcolor: 'background.default' 
+        position: 'relative',
       }}>
-        <ModulePalette />
+        {/* Left Sidebar - Module Palette */}
         <Box sx={{ 
-          flex: 1, 
-          display: 'flex', 
+          width: MODULE_PALETTE_WIDTH,
+          flexShrink: 0,
+          borderRight: 1,
+          borderColor: 'divider',
+          zIndex: 1,
+          bgcolor: 'background.paper',
+          position: 'relative',
+        }}>
+          <ModulePalette />
+        </Box>
+
+        {/* Main Content Area */}
+        <Box sx={{ 
+          flex: 1,
+          display: 'flex',
           flexDirection: 'column',
-          marginRight: isComponentDrawerOpen ? '400px' : 0,
-          marginLeft: 0,
-          transition: 'margin 0.3s ease-in-out',
+          overflow: 'hidden',
+          position: 'relative',
+          zIndex: 0,
         }}>
           <Toolbar 
             onPreviewOpen={() => setIsPreviewOpen(true)}
           />
-          <CanvasArea 
-            onComponentSelect={handleComponentSelect}
-          />
+          <Box sx={{ 
+            flex: 1,
+            position: 'relative',
+            bgcolor: 'background.default',
+          }}>
+            <CanvasArea 
+              onComponentSelect={handleComponentSelect}
+            />
+          </Box>
         </Box>
-        
-        {selectedComponent && (
-          <ComponentDrawer
-            open={isComponentDrawerOpen}
-            onClose={() => setIsComponentDrawerOpen(false)}
-            componentId={selectedComponent.id}
-            componentType={selectedComponent.type}
-          />
-        )}
 
-        <CanvasPreview
-          open={isPreviewOpen}
-          onClose={() => setIsPreviewOpen(false)}
-        />
+        {/* Right Sidebars Container */}
+        <Box sx={{ 
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          height: '100%',
+          display: 'flex',
+          zIndex: 2,
+          pointerEvents: 'none', // This allows clicking through the container when drawers are closed
+        }}>
+          {/* Component Settings Drawer */}
+          <Box sx={{ 
+            height: '100%',
+            pointerEvents: isComponentDrawerOpen ? 'auto' : 'none',
+          }}>
+            {selectedComponent && (
+              <ComponentDrawer
+                open={isComponentDrawerOpen}
+                onClose={() => setIsComponentDrawerOpen(false)}
+                componentId={selectedComponent.id}
+                componentType={selectedComponent.type}
+              />
+            )}
+          </Box>
+
+          {/* Preview Drawer */}
+          <Box sx={{ 
+            height: '100%',
+            pointerEvents: isPreviewOpen ? 'auto' : 'none',
+          }}>
+            <CanvasPreview
+              open={isPreviewOpen}
+              onClose={() => setIsPreviewOpen(false)}
+            />
+          </Box>
+        </Box>
       </Box>
     </ThemeProvider>
   );
