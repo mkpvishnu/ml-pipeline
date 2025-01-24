@@ -38,6 +38,86 @@ npm install
 npm start
 ```
 
+### API Architecture
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant API
+    participant DB
+    participant Executor
+    participant Cache
+
+    %% Module Creation
+    User->>Frontend: Create New Module
+    Frontend->>API: POST /modules
+    API->>DB: Store Module Info
+    DB-->>API: Module Created
+    API-->>Frontend: Return Module ID
+    Frontend-->>User: Show Module Created
+
+    %% Add Module Version
+    User->>Frontend: Add Module Version
+    Frontend->>API: POST /modules/{id}/versions
+    API->>DB: Store Version Code
+    DB-->>API: Version Added
+    API-->>Frontend: Return Version Info
+    Frontend-->>User: Show Version Added
+
+    %% Canvas Creation
+    User->>Frontend: Create Canvas
+    Frontend->>API: POST /canvases
+    API->>DB: Store Canvas
+    DB-->>API: Canvas Created
+    API-->>Frontend: Return Canvas ID
+    Frontend-->>User: Show Canvas Editor
+
+    %% Configure Canvas
+    User->>Frontend: Add Modules to Canvas
+    Frontend->>API: POST /canvases/{id}/modules
+    API->>DB: Update Canvas Config
+    DB-->>API: Config Updated
+    API-->>Frontend: Return Updated Canvas
+    Frontend-->>User: Show Updated Canvas
+
+    %% Execute Canvas
+    User->>Frontend: Execute Canvas
+    Frontend->>API: POST /runs/canvas/{id}/run
+    API->>DB: Create Run Record
+    DB-->>API: Run Created
+    API->>Executor: Start Execution
+    
+    %% Module Execution Loop
+    loop Each Module
+        Executor->>Cache: Check Cache
+        alt Cache Hit
+            Cache-->>Executor: Return Cached Results
+        else Cache Miss
+            Executor->>Executor: Execute Module
+            Executor->>Cache: Store Results
+        end
+        Executor->>DB: Update Run Status
+    end
+
+    %% Monitor Execution
+    User->>Frontend: Check Status
+    Frontend->>API: GET /runs/{id}
+    API->>DB: Get Run Status
+    DB-->>API: Return Status
+    API-->>Frontend: Return Run Info
+    Frontend-->>User: Show Execution Status
+
+    %% View Results
+    User->>Frontend: View Results
+    Frontend->>API: GET /runs/{id}/modules
+    API->>DB: Get Module Results
+    DB-->>API: Return Results
+    API-->>Frontend: Return Module Results
+    Frontend-->>User: Display Results
+
+```
+
 The application will open in your default browser at `http://localhost:3000`.
 
 ## Deployment to GitHub Pages
