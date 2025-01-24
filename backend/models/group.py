@@ -8,8 +8,8 @@ class Group(Base):
     __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    description = Column(String)
+    name = Column(String(255), nullable=False)
+    description = Column(String(1000))
     account_id = Column(Integer, ForeignKey("accounts.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

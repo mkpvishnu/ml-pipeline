@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # Database settings
-    DATABASE_URL: str = "sqlite:///./ml_pipeline.db"
+    DATABASE_URL: str = "mysql+pymysql://ml_user:your_password@localhost:3306/ml_pipeline"
     
     # Execution service settings
     EXECUTION_SERVICE_URL: str = "http://localhost:8001"

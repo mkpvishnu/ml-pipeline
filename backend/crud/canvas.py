@@ -7,8 +7,8 @@ import logging
 from sqlalchemy import desc
 from datetime import datetime
 
-from backend.models.database import Canvas, CanvasModuleVersion, CanvasExecution
-from backend.schemas import canvas as canvas_schema
+from ..models.canvas import Canvas, CanvasNode, CanvasExecution, CanvasModuleVersion
+from ..schemas import canvas as canvas_schema
 from .base import CRUDBase
 
 logger = logging.getLogger(__name__)
@@ -18,8 +18,9 @@ class CRUDCanvas(CRUDBase[Canvas, canvas_schema.CanvasCreate, canvas_schema.Canv
         return db.query(Canvas).filter(Canvas.account_id == account_id).offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: canvas_schema.CanvasCreate) -> Canvas:
-        # First create the canvas
+        # First create the canvas with UUID
         canvas_data = obj_in.dict(exclude={'nodes'})
+        canvas_data['canvas_id'] = str(uuid.uuid4())
         db_canvas = Canvas(**canvas_data)
         db.add(db_canvas)
         db.commit()
@@ -87,8 +88,36 @@ class CRUDCanvasExecution(CRUDBase[CanvasExecution, canvas_schema.CanvasExecutio
             db.refresh(db_execution)
         return db_execution
 
+class CRUDCanvasModuleVersion(CRUDBase[CanvasModuleVersion, canvas_schema.CanvasModuleVersionCreate, canvas_schema.CanvasModuleVersionUpdate]):
+    def get_by_canvas_and_module(
+        self, 
+        db: Session, 
+        *, 
+        canvas_id: str, 
+        module_id: str
+    ) -> List[CanvasModuleVersion]:
+        return db.query(CanvasModuleVersion).filter(
+            CanvasModuleVersion.canvas_id == canvas_id,
+            CanvasModuleVersion.module_id == module_id
+        ).all()
+
+    def get_by_version(
+        self, 
+        db: Session, 
+        *, 
+        canvas_id: str, 
+        module_id: str, 
+        version: str
+    ) -> Optional[CanvasModuleVersion]:
+        return db.query(CanvasModuleVersion).filter(
+            CanvasModuleVersion.canvas_id == canvas_id,
+            CanvasModuleVersion.module_id == module_id,
+            CanvasModuleVersion.version == version
+        ).first()
+
 canvas = CRUDCanvas(Canvas)
 canvas_execution = CRUDCanvasExecution(CanvasExecution)
+canvas_module_version = CRUDCanvasModuleVersion(CanvasModuleVersion)
 
 class CanvasCRUD:
     @staticmethod
