@@ -1,75 +1,50 @@
 import React from 'react';
 import { Box, Paper, Typography, List, ListItem, Divider, Collapse } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
-import BuildIcon from '@mui/icons-material/Build';
-import SchoolIcon from '@mui/icons-material/School';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import TuneIcon from '@mui/icons-material/Tune';
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import BubbleChartIcon from '@mui/icons-material/BubbleChart';
-import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import PsychologyIcon from '@mui/icons-material/Psychology';
+import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import ApiIcon from '@mui/icons-material/Api';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
-const moduleCategories = [
+const componentCategories = [
   {
-    title: 'Data',
-    modules: [
-      { type: 'data', label: 'Data Source', icon: StorageIcon },
-      { type: 'data_transform', label: 'Data Transform', icon: TuneIcon },
-      { type: 'feature_extraction', label: 'Feature Extraction', icon: AutoFixHighIcon },
-      { type: 'data_augmentation', label: 'Data Augmentation', icon: AccountTreeIcon },
+    title: 'Data Processing',
+    components: [
+      { type: 'data_loader', label: 'Data Loader', icon: StorageIcon },
+      { type: 'data_transformer', label: 'Data Transformer', icon: StorageIcon },
     ],
   },
   {
-    title: 'Preprocessing',
-    modules: [
-      { type: 'preprocess', label: 'Preprocessing', icon: BuildIcon },
-      { type: 'feature_selection', label: 'Feature Selection', icon: BubbleChartIcon },
-      { type: 'dimensionality_reduction', label: 'Dimensionality Reduction', icon: TimelineIcon },
-      { type: 'data_cleaning', label: 'Data Cleaning', icon: BuildIcon },
-    ],
-  },
-  {
-    title: 'Model',
-    modules: [
-      { type: 'training', label: 'Training', icon: SchoolIcon },
-      { type: 'hyperparameter_tuning', label: 'Hyperparameter Tuning', icon: TuneIcon },
-      { type: 'ensemble', label: 'Ensemble', icon: AccountTreeIcon },
-      { type: 'transfer_learning', label: 'Transfer Learning', icon: PsychologyIcon },
+    title: 'Model Components',
+    components: [
+      { type: 'classifier', label: 'Classifier', icon: ModelTrainingIcon },
+      { type: 'regressor', label: 'Regressor', icon: ModelTrainingIcon },
     ],
   },
   {
     title: 'Evaluation',
-    modules: [
-      { type: 'validation', label: 'Validation', icon: CheckCircleIcon },
-      { type: 'cross_validation', label: 'Cross Validation', icon: TimelineIcon },
-      { type: 'metrics', label: 'Metrics', icon: BarChartIcon },
-      { type: 'visualization', label: 'Visualization', icon: BubbleChartIcon },
+    components: [
+      { type: 'evaluator', label: 'Model Evaluator', icon: AssessmentIcon },
+      { type: 'validator', label: 'Cross Validator', icon: AssessmentIcon },
     ],
   },
   {
     title: 'Deployment',
-    modules: [
-      { type: 'deployment', label: 'Deployment', icon: CloudUploadIcon },
-      { type: 'monitoring', label: 'Monitoring', icon: TimelineIcon },
-      { type: 'ab_testing', label: 'A/B Testing', icon: AccountTreeIcon },
-      { type: 'model_serving', label: 'Model Serving', icon: CloudUploadIcon },
+    components: [
+      { type: 'api_endpoint', label: 'API Endpoint', icon: ApiIcon },
+      { type: 'model_server', label: 'Model Server', icon: ApiIcon },
     ],
   },
 ];
 
 const ModulePalette: React.FC = () => {
   const [openCategories, setOpenCategories] = React.useState<Record<string, boolean>>(
-    Object.fromEntries(moduleCategories.map(cat => [cat.title, true]))
+    Object.fromEntries(componentCategories.map(cat => [cat.title, true]))
   );
 
-  const onDragStart = (event: React.DragEvent, moduleType: string) => {
-    event.dataTransfer.setData('application/reactflow', moduleType);
+  const onDragStart = (event: React.DragEvent, componentType: string) => {
+    event.dataTransfer.setData('application/reactflow', componentType);
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -91,10 +66,10 @@ const ModulePalette: React.FC = () => {
     >
       <Box sx={{ p: 2 }}>
         <Typography variant="h6" gutterBottom>
-          Modules
+          Components
         </Typography>
         <List>
-          {moduleCategories.map(({ title, modules }, index) => (
+          {componentCategories.map(({ title, components }, index) => (
             <React.Fragment key={title}>
               {index > 0 && <Divider sx={{ my: 1 }} />}
               <ListItem
@@ -109,7 +84,7 @@ const ModulePalette: React.FC = () => {
               </ListItem>
               <Collapse in={openCategories[title]}>
                 <List disablePadding>
-                  {modules.map(({ type, label, icon: Icon }) => (
+                  {components.map(({ type, label, icon: Icon }) => (
                     <ListItem
                       key={type}
                       draggable

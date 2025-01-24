@@ -19,6 +19,7 @@ import {
   FormControlLabel,
   Switch,
   Typography,
+  Divider,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SaveIcon from '@mui/icons-material/Save';
@@ -26,6 +27,12 @@ import HistoryIcon from '@mui/icons-material/History';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ShareIcon from '@mui/icons-material/Share';
+import DownloadIcon from '@mui/icons-material/Download';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const Toolbar: React.FC = () => {
   const [newCanvasDialog, setNewCanvasDialog] = useState(false);
@@ -46,61 +53,92 @@ const Toolbar: React.FC = () => {
 
   return (
     <>
-      <AppBar position="static" color="default" elevation={1}>
-        <MuiToolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Canvas</InputLabel>
-              <Select label="Canvas" defaultValue="ticket-classifier">
-                <MenuItem value="ticket-classifier">Ticket Classifier v1</MenuItem>
-                <MenuItem value="new">
-                  <AddIcon sx={{ mr: 1, fontSize: 20 }} />
-                  New Canvas
-                </MenuItem>
-              </Select>
-            </FormControl>
+      <AppBar 
+        position="static" 
+        color="default" 
+        elevation={1}
+        sx={{ 
+          bgcolor: 'background.paper',
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <MuiToolbar variant="dense">
+          <Typography variant="h6" sx={{ mr: 2 }}>
+            ML Pipeline Builder
+          </Typography>
 
-            <Tooltip title="Create New Module">
-              <IconButton onClick={() => setNewModuleDialog(true)} size="small">
-                <AddIcon />
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              startIcon={<PlayArrowIcon />}
+              variant="contained"
+              color="primary"
+              size="small"
+            >
+              Run Pipeline
+            </Button>
+
+            <Button
+              startIcon={<VisibilityIcon />}
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                // TODO: Implement preview functionality
+              }}
+            >
+              Preview
+            </Button>
+          </Box>
+
+          <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Save">
+              <IconButton size="small">
+                <SaveIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Undo">
+              <IconButton size="small">
+                <UndoIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Redo">
+              <IconButton size="small">
+                <RedoIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           </Box>
 
-          <Box sx={{ flexGrow: 1, display: 'flex', gap: 1, ml: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<SaveIcon />}
-              size="small"
-            >
-              Save
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<PlayArrowIcon />}
-              size="small"
-            >
-              Run
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<HistoryIcon />}
-              size="small"
-              onClick={() => setHistoryDialog(true)}
-            >
-              History
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<ScheduleIcon />}
-              size="small"
-              onClick={() => setScheduleDialog(true)}
-            >
-              Schedule
-            </Button>
+          <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Share">
+              <IconButton size="small">
+                <ShareIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Export">
+              <IconButton size="small">
+                <DownloadIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Clear Canvas">
+              <IconButton size="small">
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Box>
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Typography variant="body2" color="text.secondary">
+            Demo Canvas: Ticket Classifier v1
+          </Typography>
         </MuiToolbar>
       </AppBar>
 

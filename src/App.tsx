@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import ModulePalette from './components/ModulePalette';
 import CanvasArea from './components/CanvasArea';
 import Toolbar from './components/Toolbar';
+import ComponentDrawer from './components/ComponentDrawer';
+import CanvasPreview from './components/CanvasPreview';
 
 const theme = createTheme({
   palette: {
@@ -48,6 +50,18 @@ const theme = createTheme({
 });
 
 const App: React.FC = () => {
+  const [selectedComponent, setSelectedComponent] = useState<{
+    id: string;
+    type: string;
+  } | null>(null);
+  const [isComponentDrawerOpen, setIsComponentDrawerOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  const handleComponentSelect = (componentId: string, componentType: string) => {
+    setSelectedComponent({ id: componentId, type: componentType });
+    setIsComponentDrawerOpen(true);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -58,10 +72,35 @@ const App: React.FC = () => {
         bgcolor: 'background.default' 
       }}>
         <ModulePalette />
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <Toolbar />
-          <CanvasArea />
+        <Box sx={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          marginRight: isComponentDrawerOpen ? '400px' : 0,
+          marginLeft: 0,
+          transition: 'margin 0.3s ease-in-out',
+        }}>
+          <Toolbar 
+            onPreviewOpen={() => setIsPreviewOpen(true)}
+          />
+          <CanvasArea 
+            onComponentSelect={handleComponentSelect}
+          />
         </Box>
+        
+        {selectedComponent && (
+          <ComponentDrawer
+            open={isComponentDrawerOpen}
+            onClose={() => setIsComponentDrawerOpen(false)}
+            componentId={selectedComponent.id}
+            componentType={selectedComponent.type}
+          />
+        )}
+
+        <CanvasPreview
+          open={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+        />
       </Box>
     </ThemeProvider>
   );

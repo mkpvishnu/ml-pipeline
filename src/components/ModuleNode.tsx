@@ -4,7 +4,7 @@ import {
   Paper,
   Typography,
   IconButton,
-  Select,
+  Menu,
   MenuItem,
   Dialog,
   DialogTitle,
@@ -16,32 +16,52 @@ import {
   Chip,
 } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import SettingsIcon from '@mui/icons-material/Settings';
 import CachedIcon from '@mui/icons-material/Cached';
 import Editor from '@monaco-editor/react';
-import ModelVersionDialog from './ModelVersionDialog';
 import ModuleCacheDialog from './ModuleCacheDialog';
+
+interface Module {
+  id: string;
+  name: string;
+  type: 'default' | 'custom';
+}
 
 interface ModuleNodeProps {
   data: {
     label: string;
-    version: string;
-    code: string;
+    componentType: string;
+    activeModule?: Module;
+    onSettingsOpen: () => void;
   };
 }
 
 const ModuleNode: React.FC<ModuleNodeProps> = ({ data }) => {
-  const [version, setVersion] = useState(data.version);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
   const [isCacheDialogOpen, setIsCacheDialogOpen] = useState(false);
-  const [code, setCode] = useState(data.code);
+  const [moduleMenuAnchor, setModuleMenuAnchor] = useState<null | HTMLElement>(null);
+  const [code, setCode] = useState('# Python code will be loaded based on active module');
 
   // Sample cache status - in real app, this would come from props or state management
   const cacheStatus = {
     available: true,
     size: '2.5GB',
     timestamp: '15 min ago',
+  };
+
+  // Sample available modules - in real app, this would come from props
+  const availableModules: Module[] = [
+    { id: 'bert', name: 'BERT Classifier', type: 'default' },
+    { id: 'lstm', name: 'LSTM Classifier', type: 'custom' },
+    { id: 'custom1', name: 'Custom Module 1', type: 'custom' },
+  ];
+
+  const handleModuleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setModuleMenuAnchor(event.currentTarget);
+  };
+
+  const handleModuleClose = () => {
+    setModuleMenuAnchor(null);
   };
 
   return (
@@ -76,27 +96,24 @@ const ModuleNode: React.FC<ModuleNodeProps> = ({ data }) => {
               </Tooltip>
             )}
             
-            <Select
+            <Chip
+              label={data.activeModule?.name || 'No module selected'}
               size="small"
-              value={version}
-              onChange={(e) => setVersion(e.target.value)}
-              sx={{ minWidth: 70, mr: 1 }}
-            >
-              <MenuItem value="v1">v1</MenuItem>
-              <MenuItem value="v2">v2</MenuItem>
-              <MenuItem value="v3">v3</MenuItem>
-            </Select>
+              color={data.activeModule ? 'primary' : 'default'}
+              onClick={handleModuleClick}
+              sx={{ mr: 1 }}
+            />
 
-            <Tooltip title="View Model Versions">
+            <Tooltip title="Component Settings">
               <IconButton
                 size="small"
-                onClick={() => setIsVersionDialogOpen(true)}
+                onClick={data.onSettingsOpen}
               >
-                <LocalOfferIcon fontSize="small" />
+                <SettingsIcon fontSize="small" />
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Edit Code">
+            <Tooltip title="View Code">
               <IconButton
                 size="small"
                 onClick={() => setIsEditorOpen(true)}
@@ -110,14 +127,42 @@ const ModuleNode: React.FC<ModuleNodeProps> = ({ data }) => {
         <Handle type="source" position={Position.Bottom} />
       </Paper>
 
-      {/* Code Editor Dialog */}
+      {/* Quick Module Selection Menu */}
+      <Menu
+        anchorEl={moduleMenuAnchor}
+        open={Boolean(moduleMenuAnchor)}
+        onClose={handleModuleClose}
+      >
+        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary' }}>
+          Available Modules
+        </Typography>
+        {availableModules.map((module) => (
+          <MenuItem
+            key={module.id}
+            onClick={handleModuleClose}
+            selected={data.activeModule?.id === module.id}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {module.name}
+              <Chip
+                label={module.type}
+                size="small"
+                color={module.type === 'default' ? 'primary' : 'secondary'}
+                sx={{ ml: 1 }}
+              />
+            </Box>
+          </MenuItem>
+        ))}
+      </Menu>
+
+      {/* Code Viewer Dialog */}
       <Dialog
         open={isEditorOpen}
         onClose={() => setIsEditorOpen(false)}
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Edit {data.label} Code</DialogTitle>
+        <DialogTitle>View {data.activeModule?.name || 'Module'} Code</DialogTitle>
         <DialogContent>
           <Box sx={{ height: 400 }}>
             <Editor
@@ -125,32 +170,17 @@ const ModuleNode: React.FC<ModuleNodeProps> = ({ data }) => {
               defaultLanguage="python"
               theme="vs-dark"
               value={code}
-              onChange={(value) => setCode(value || '')}
               options={{
+                readOnly: true,
                 minimap: { enabled: false },
               }}
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsEditorOpen(false)}>Cancel</Button>
-          <Button
-            onClick={() => {
-              // TODO: Save code changes
-              setIsEditorOpen(false);
-            }}
-            variant="contained"
-          >
-            Save
-          </Button>
+          <Button onClick={() => setIsEditorOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
-
-      {/* Model Version Dialog */}
-      <ModelVersionDialog
-        open={isVersionDialogOpen}
-        onClose={() => setIsVersionDialogOpen(false)}
-      />
 
       {/* Module Cache Dialog */}
       <ModuleCacheDialog
