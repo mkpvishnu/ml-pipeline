@@ -136,13 +136,17 @@ const CanvasArea: React.FC<Props> = ({ onComponentSelect }) => {
   };
 
   return (
-    <Box sx={{ 
-      width: '100%',
-      height: '100%',
-      '& .react-flow__renderer': {
-        bgcolor: 'background.default',
-      },
-    }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        bgcolor: '#fafafa',
+        backgroundImage: `radial-gradient(#e3e3e3 1px, transparent 1px)`,
+        backgroundSize: '20px 20px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
