@@ -4,15 +4,18 @@ from fastapi.encoders import jsonable_encoder
 
 from backend.models.database import Account
 from backend.schemas.account import AccountCreate, AccountUpdate
+from .base import CRUDBase
+
+class CRUDAccount(CRUDBase[Account, AccountCreate, AccountUpdate]):
+    def get_by_email(self, db: Session, *, email: str) -> Optional[Account]:
+        return db.query(Account).filter(Account.email == email).first()
+
+account = CRUDAccount(Account)
 
 class AccountCRUD:
     @staticmethod
     def get(db: Session, id: int) -> Optional[Account]:
         return db.query(Account).filter(Account.id == id).first()
-
-    @staticmethod
-    def get_by_email(db: Session, email: str) -> Optional[Account]:
-        return db.query(Account).filter(Account.email == email).first()
 
     @staticmethod
     def get_multi(db: Session, *, skip: int = 0, limit: int = 100) -> List[Account]:

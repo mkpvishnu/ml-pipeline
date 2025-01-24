@@ -2,6 +2,7 @@ from typing import Optional, Dict
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from backend.models.database import AccountType
+from .base import BaseSchema
 
 class AccountBase(BaseModel):
     """Base Account Schema"""
@@ -30,4 +31,9 @@ class AccountResponse(AccountBase):
     updated_at: datetime
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+class Account(AccountBase, BaseSchema):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] 

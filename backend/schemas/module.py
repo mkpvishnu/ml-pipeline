@@ -1,6 +1,8 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from pydantic import BaseModel, Field
 from datetime import datetime
+
+from .base import BaseSchema, ModuleType
 
 class ModuleVersionBase(BaseModel):
     """Base Module Version Schema"""
@@ -33,12 +35,11 @@ class ModuleVersionResponse(ModuleVersionBase):
 class ModuleBase(BaseModel):
     """Base Module Schema"""
     name: str
-    type: str
     description: Optional[str] = None
-    is_active: Optional[bool] = True
-    category: Optional[str] = None
-    tags: List[str] = Field(default_factory=list)
-    meta_info: Dict = Field(default_factory=dict)
+    type: str  # default or custom
+    module_type: ModuleType
+    code: Optional[str] = None
+    config_schema: Optional[Dict[str, Any]] = None
 
 class ModuleCreate(ModuleBase):
     """Schema for creating a module"""
@@ -47,12 +48,11 @@ class ModuleCreate(ModuleBase):
 class ModuleUpdate(BaseModel):
     """Schema for updating a module"""
     name: Optional[str] = None
-    type: Optional[str] = None
     description: Optional[str] = None
-    is_active: Optional[bool] = None
-    category: Optional[str] = None
-    tags: Optional[List[str]] = None
-    meta_info: Optional[Dict] = None
+    type: Optional[str] = None
+    module_type: Optional[ModuleType] = None
+    code: Optional[str] = None
+    config_schema: Optional[Dict[str, Any]] = None
 
 class ModuleResponse(ModuleBase):
     """Schema for module response"""
@@ -64,4 +64,10 @@ class ModuleResponse(ModuleBase):
     versions: List[ModuleVersionResponse] = []
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+class Module(ModuleBase, BaseSchema):
+    id: int
+    component_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] 

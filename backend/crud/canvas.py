@@ -4,11 +4,91 @@ from fastapi.encoders import jsonable_encoder
 import uuid
 from sqlalchemy.exc import SQLAlchemyError
 import logging
+from sqlalchemy import desc
+from datetime import datetime
 
-from backend.models.database import Canvas, CanvasModuleVersion
+from backend.models.database import Canvas, CanvasModuleVersion, CanvasExecution
 from backend.schemas import canvas as canvas_schema
+from .base import CRUDBase
 
 logger = logging.getLogger(__name__)
+
+class CRUDCanvas(CRUDBase[Canvas, canvas_schema.CanvasCreate, canvas_schema.CanvasUpdate]):
+    def get_by_account(self, db: Session, *, account_id: int, skip: int = 0, limit: int = 100) -> List[Canvas]:
+        return db.query(Canvas).filter(Canvas.account_id == account_id).offset(skip).limit(limit).all()
+
+    def create(self, db: Session, *, obj_in: canvas_schema.CanvasCreate) -> Canvas:
+        # First create the canvas
+        canvas_data = obj_in.dict(exclude={'nodes'})
+        db_canvas = Canvas(**canvas_data)
+        db.add(db_canvas)
+        db.commit()
+        db.refresh(db_canvas)
+
+        # Then create the nodes
+        for node in obj_in.nodes:
+            node_data = node.dict()
+            node_data['canvas_id'] = db_canvas.id
+            db_node = CanvasNode(**node_data)
+            db.add(db_node)
+        
+        db.commit()
+        db.refresh(db_canvas)
+        return db_canvas
+
+    def update(self, db: Session, *, db_obj: Canvas, obj_in: canvas_schema.CanvasUpdate) -> Canvas:
+        # Update canvas attributes
+        canvas_data = obj_in.dict(exclude={'nodes'})
+        for key, value in canvas_data.items():
+            setattr(db_obj, key, value)
+
+        # Delete existing nodes
+        db.query(CanvasNode).filter(CanvasNode.canvas_id == db_obj.id).delete()
+
+        # Create new nodes
+        for node in obj_in.nodes:
+            node_data = node.dict()
+            node_data['canvas_id'] = db_obj.id
+            db_node = CanvasNode(**node_data)
+            db.add(db_node)
+
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
+class CRUDCanvasExecution(CRUDBase[CanvasExecution, canvas_schema.CanvasExecutionCreate, canvas_schema.CanvasExecutionCreate]):
+    def get_by_canvas(self, db: Session, *, canvas_id: int, skip: int = 0, limit: int = 100) -> List[CanvasExecution]:
+        return db.query(CanvasExecution)\
+            .filter(CanvasExecution.canvas_id == canvas_id)\
+            .order_by(desc(CanvasExecution.created_at))\
+            .offset(skip).limit(limit).all()
+
+    def update_status(
+        self, 
+        db: Session, 
+        *, 
+        execution_id: int, 
+        status: str, 
+        result: Optional[Dict[str, Any]] = None,
+        error: Optional[str] = None
+    ) -> Optional[CanvasExecution]:
+        db_execution = self.get(db, id=execution_id)
+        if db_execution:
+            db_execution.status = status
+            if status == "completed":
+                db_execution.result = result
+                db_execution.completed_at = datetime.utcnow()
+            elif status == "failed":
+                db_execution.error = error
+                db_execution.completed_at = datetime.utcnow()
+            elif status == "running":
+                db_execution.started_at = datetime.utcnow()
+            db.commit()
+            db.refresh(db_execution)
+        return db_execution
+
+canvas = CRUDCanvas(Canvas)
+canvas_execution = CRUDCanvasExecution(CanvasExecution)
 
 class CanvasCRUD:
     @staticmethod

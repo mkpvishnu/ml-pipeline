@@ -10,6 +10,7 @@ from backend.schemas.module import (
     ModuleVersionCreate,
     ModuleVersionUpdate
 )
+from .base import CRUDBase
 
 class ModuleCRUD:
     @staticmethod
@@ -133,4 +134,10 @@ class ModuleCRUD:
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        return db_obj 
+        return db_obj
+
+class CRUDModule(CRUDBase[Module, ModuleCreate, ModuleUpdate]):
+    def get_by_component(self, db: Session, *, component_id: int, skip: int = 0, limit: int = 100) -> List[Module]:
+        return db.query(Module).filter(Module.component_id == component_id).offset(skip).limit(limit).all()
+
+module = CRUDModule(Module) 
