@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import Column, String, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, BigInteger
 from sqlalchemy.orm import relationship
 
 from backend.db.base import Base
@@ -13,7 +13,7 @@ class Run(Base):
     __tablename__ = "runs"
 
     id = Column(String(36), primary_key=True, index=True)
-    account_id = Column(String(36), ForeignKey("accounts.id"), nullable=False)
+    account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     canvas_id = Column(String(36), ForeignKey("canvases.id"), nullable=False)
     status = Column(String(50), nullable=False, default="pending")  # pending, running, completed, failed, cancelled
     results = Column(JSON)

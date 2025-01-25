@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import Column, String, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, BigInteger
 from sqlalchemy.orm import relationship
 
 from backend.db.base import Base
@@ -13,7 +13,7 @@ class Canvas(Base):
     __tablename__ = "canvases"
 
     id = Column(String(36), primary_key=True, index=True)
-    account_id = Column(String(36), ForeignKey("accounts.id"), nullable=False)
+    account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
     module_config = Column(JSON, default={})  # Stores component positions, connections

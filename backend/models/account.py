@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import Column, String, DateTime, JSON, Enum
+from sqlalchemy import Column, String, DateTime, JSON, Enum, BigInteger
 from sqlalchemy.orm import relationship
 
 from backend.db.base import Base
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class Account(Base):
     __tablename__ = "accounts"
 
-    id = Column(String(36), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
     name = Column(String(255), nullable=False)
     email = Column(String(255), unique=True, nullable=False, index=True)
     account_type = Column(Enum(AccountType), default=AccountType.PERSONAL)
@@ -28,4 +28,6 @@ class Account(Base):
     groups = relationship("Group", back_populates="account", cascade="all, delete-orphan")
     components = relationship("Component", back_populates="account", cascade="all, delete-orphan")
     canvases = relationship("Canvas", back_populates="account", cascade="all, delete-orphan")
-    runs = relationship("Run", back_populates="account", cascade="all, delete-orphan") 
+    runs = relationship("Run", back_populates="account", cascade="all, delete-orphan")
+    modules = relationship("Module", back_populates="account", cascade="all, delete-orphan") 
+ 

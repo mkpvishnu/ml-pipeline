@@ -1,1 +1,5 @@
 node_modules
+.pyc
+.env
+ml_pipe/
+__pycache__/

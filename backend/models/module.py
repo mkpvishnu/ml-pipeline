@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Enum
+from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, Enum, BigInteger
 from sqlalchemy.orm import relationship
 
 from backend.db.base import Base
@@ -14,13 +14,13 @@ class Module(Base):
     __tablename__ = "modules"
 
     id = Column(String(36), primary_key=True, index=True)
-    account_id = Column(String(36), ForeignKey("accounts.id"), nullable=False)
+    account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     component_id = Column(String(36), ForeignKey("components.id"), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
     type = Column(String(50), nullable=False)  # "default" or "custom"
     module_type = Column(Enum(ModuleType), nullable=False)
-    code = Column(String)  # Python code for script/hybrid types
+    code = Column(String(10000))  # Python code for script/hybrid types
     config_schema = Column(JSON)  # JSON schema for config/hybrid types
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
