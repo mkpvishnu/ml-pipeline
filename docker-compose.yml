@@ -5,21 +5,16 @@ services:
     build: .
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - DEBUG=False
-      - DB_HOST=localhost  # Listen on all interfaces
-      - DB_PORT=3306
-      - DB_USER=${DB_USER:-ml_user}
-      - DB_PASSWORD=${DB_PASSWORD:-ml_user}
-      - DB_NAME=${DB_NAME:-ml_pipeline}
-      - DB_POOL_SIZE=5
-      - DB_MAX_OVERFLOW=10
-      - DB_POOL_TIMEOUT=30
+
     volumes:
       - ./backend:/app/backend
       - ./migrations:/app/migrations
       - ./alembic.ini:/app/alembic.ini
-    network_mode: "host"  # Use host networking for Podman
+      - ./.env:/app/.env
 
 volumes:
   mysql-data:
