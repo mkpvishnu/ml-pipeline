@@ -4,3 +4,4 @@ node_modules
 ml_pipe/
 __pycache__/
 .env
+*.env
