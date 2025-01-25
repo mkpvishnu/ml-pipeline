@@ -24,7 +24,10 @@ class GroupUpdate(BaseSchema):
 
 class GroupResponse(GroupBase):
     """Schema for group response"""
-    id: str
-    account_id: str
+    id: int
+    account_id: int
     created_at: datetime
-    updated_at: datetime 
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True 

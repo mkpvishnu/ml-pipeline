@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Group(Base):
     __tablename__ = "groups"
 
-    id = Column(String(36), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(String(1000))

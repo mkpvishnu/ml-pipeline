@@ -47,8 +47,8 @@ class ModuleNameUpdate(BaseSchema):
 
 class ModuleResponse(ModuleBase):
     """Schema for module response"""
-    id: str
-    account_id: str
-    component_id: str
+    id: int = Field(..., description="Module ID")
+    account_id: int = Field(..., description="Account ID")
+    component_id: int = Field(..., description="Component ID")
     created_at: datetime
     updated_at: datetime 

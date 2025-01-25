@@ -24,12 +24,12 @@ class RunBase(BaseSchema):
 
 class RunCreate(RunBase):
     """Schema for creating a run"""
-    canvas_id: str
+    canvas_id: int
 
 
 class RunUpdate(RunBase):
     """Schema for updating a run"""
-    canvas_id: Optional[str] = None
+    canvas_id: Optional[int] = None
     status: Optional[RunStatus] = None
     results: Optional[Dict] = None
     error: Optional[Dict] = None
@@ -52,9 +52,9 @@ class RunStatusResponse(BaseSchema):
 
 class RunResponse(RunBase):
     """Schema for run response"""
-    id: str
-    canvas_id: str
-    account_id: str
+    id: int
+    canvas_id: int
+    account_id: int
     started_at: datetime
     completed_at: Optional[datetime] = None
     created_at: datetime

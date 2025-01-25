@@ -36,7 +36,7 @@ class CanvasModuleConfigUpdate(BaseSchema):
 
 class CanvasResponse(CanvasBase):
     """Schema for canvas response"""
-    id: str
-    account_id: str
+    id: int
+    account_id: int
     created_at: datetime
     updated_at: datetime 

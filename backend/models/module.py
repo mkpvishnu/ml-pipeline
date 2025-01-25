@@ -13,9 +13,9 @@ if TYPE_CHECKING:
 class Module(Base):
     __tablename__ = "modules"
 
-    id = Column(String(36), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
-    component_id = Column(String(36), ForeignKey("components.id"), nullable=False)
+    component_id = Column(BigInteger, ForeignKey("components.id"), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
     type = Column(String(50), nullable=False)  # "default" or "custom"

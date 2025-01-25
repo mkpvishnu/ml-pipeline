@@ -12,9 +12,9 @@ if TYPE_CHECKING:
 class Run(Base):
     __tablename__ = "runs"
 
-    id = Column(String(36), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
-    canvas_id = Column(String(36), ForeignKey("canvases.id"), nullable=False)
+    canvas_id = Column(BigInteger, ForeignKey("canvases.id"), nullable=False)
     status = Column(String(50), nullable=False, default="pending")  # pending, running, completed, failed, cancelled
     results = Column(JSON)
     error = Column(JSON)

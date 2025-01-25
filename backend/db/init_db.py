@@ -1,62 +1,54 @@
-import logging
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.db.session import engine, AsyncSessionLocal
 from backend.db.base import Base
-from backend.db.session import engine
-from backend.core.config import get_settings
-from backend.schemas.base import AccountType
-from backend.crud.account import account
-from backend.schemas.account import AccountCreate
+from backend.core.config import settings
 
-settings = get_settings()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import all models to ensure they are registered with SQLAlchemy
+from backend.models.account import Account
+from backend.models.group import Group
+from backend.models.component import Component
+from backend.models.module import Module
+from backend.models.canvas import Canvas
+from backend.models.run import Run
 
-
-def init_db(db: Session) -> None:
-    """Initialize database"""
+async def init_db() -> None:
+    """Initialize the database.
+    
+    This will:
+    1. Create all tables
+    2. Add any initial data if needed
+    """
     try:
-        # Create all tables
-        Base.metadata.create_all(bind=engine)
-        logger.info("Created all database tables")
-
-        # Create default admin account if it doesn't exist
-        admin_email = "admin@example.com"
-        if not account.get_by_email(db, email=admin_email):
-            admin = AccountCreate(
-                name="Admin",
-                email=admin_email,
-                account_type=AccountType.ENTERPRISE,
-                settings={"is_admin": True}
-            )
-            account.create(db, obj_in=admin)
-            logger.info("Created admin account")
-
-    except SQLAlchemyError as e:
-        logger.error(f"Error initializing database: {str(e)}")
+        # Create tables
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)  # Drop existing tables
+            await conn.run_sync(Base.metadata.create_all)  # Create new tables
+        await engine.dispose()
+        
+        # Initialize with any seed data if needed
+        async with AsyncSessionLocal() as session:
+            await create_initial_data(session)
+            await session.commit()
+            
+        print("Database initialized successfully!")
+        
+    except Exception as e:
+        print(f"Error initializing database: {str(e)}")
         raise
 
+async def create_initial_data(db: AsyncSession) -> None:
+    """Create initial data in the database.
+    
+    Add any seed data, initial users, or required records here.
+    """
+    # Add any initial data here if needed
+    pass
 
-def drop_db() -> None:
-    """Drop all tables (use with caution!)"""
-    try:
-        Base.metadata.drop_all(bind=engine)
-        logger.info("Dropped all database tables")
-    except SQLAlchemyError as e:
-        logger.error(f"Error dropping database: {str(e)}")
-        raise
-
+def init_db_sync():
+    """Synchronous wrapper for database initialization"""
+    asyncio.run(init_db())
 
 if __name__ == "__main__":
-    from backend.db.session import SessionLocal
-    db = SessionLocal()
-    try:
-        logger.info("Creating initial data")
-        init_db(db)
-        logger.info("Initial data created")
-    except Exception as e:
-        logger.error(f"Error creating initial data: {str(e)}")
-        raise
-    finally:
-        db.close() 
+    init_db_sync() 

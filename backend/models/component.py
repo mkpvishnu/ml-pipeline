@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 class Component(Base):
     __tablename__ = "components"
 
-    id = Column(String(36), primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
-    group_id = Column(String(36), ForeignKey("groups.id"), nullable=False)
+    group_id = Column(BigInteger, ForeignKey("groups.id"), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
-    active_module_id = Column(String(36), ForeignKey("modules.id"), nullable=True)
+    active_module_id = Column(BigInteger, ForeignKey("modules.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
