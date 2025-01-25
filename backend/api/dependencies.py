@@ -1,24 +1,24 @@
-from typing import Generator
-from fastapi import Header, HTTPException, Depends
-from sqlalchemy.orm import Session
+from typing import AsyncGenerator
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.session import SessionLocal
-from backend.crud import account as crud_account
+from backend.db.session import get_async_session
+from backend.crud.account import get_account_by_id
 
-def get_db() -> Generator:
-    """Database session dependency"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Dependency for getting async database sessions"""
+    async for session in get_async_session():
+        yield session
 
 async def validate_account_id(
-    account_id: str = Header(...),
-    db: Session = Depends(get_db)
+    account_id: str,
+    db: AsyncSession = Depends(get_db)
 ) -> str:
     """Validate account_id from header"""
-    account = crud_account.get(db, id=account_id)
+    account = await get_account_by_id(db, account_id)
     if not account:
-        raise HTTPException(status_code=404, detail="Account not found")
-    return account_id 
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Account not found"
+        )
+    return account_id

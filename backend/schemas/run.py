@@ -27,6 +27,14 @@ class RunCreate(RunBase):
     canvas_id: str
 
 
+class RunUpdate(RunBase):
+    """Schema for updating a run"""
+    canvas_id: Optional[str] = None
+    status: Optional[RunStatus] = None
+    results: Optional[Dict] = None
+    error: Optional[Dict] = None
+
+
 class RunStatusUpdate(BaseSchema):
     """Schema for updating run status"""
     status: RunStatus

@@ -59,4 +59,7 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance"""
-    return Settings() 
+    return Settings()
+
+# Export the settings instance
+settings = get_settings() 

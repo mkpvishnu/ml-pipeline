@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=${DB_USER:-ml_user}
+      - DB_PASSWORD=${DB_PASSWORD:-ml_user}
+      - DB_NAME=${DB_NAME:-ml_pipeline}
+      - DB_POOL_SIZE=5
+      - DB_MAX_OVERFLOW=10
+      - DB_POOL_TIMEOUT=30
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app/backend
+    networks:
+      - ml-network
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=${DB_NAME:-ml_pipeline}
+      - MYSQL_USER=${DB_USER:-ml_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-ml_user}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - ml-network
+
+volumes:
+  mysql-data:
+
+networks:
+  ml-network:
+    driver: bridge 

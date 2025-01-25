@@ -1,69 +1,73 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Annotated
 
 from backend.api.dependencies import get_db
-from backend.crud import account as crud_account
-from backend.schemas import account as schemas
+from backend.crud.account import account as crud_account
+from backend.schemas.account import AccountCreate, AccountUpdate, AccountResponse
 
-router = APIRouter(prefix="/accounts", tags=["accounts"])
+router = APIRouter()
 
-@router.post("/", response_model=schemas.AccountResponse)
-def create_account(
+@router.post("/", response_model=AccountResponse)
+async def create_account(
     *,
-    db: Session = Depends(get_db),
-    account_in: schemas.AccountCreate
+    db: AsyncSession = Depends(get_db),
+    account_in: AccountCreate
 ):
     """Create new account"""
-    db_account = crud_account.get_by_email(db, email=account_in.email)
-    if db_account:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud_account.create(db=db, obj_in=account_in)
+    # Check if email already exists
+    existing_account = await crud_account.get_by_email(db, email=account_in.email)
+    if existing_account:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+    return await crud_account.create(db=db, obj_in=account_in)
 
-@router.get("/", response_model=List[schemas.AccountResponse])
-def list_accounts(
+@router.get("/", response_model=List[AccountResponse])
+async def list_accounts(
     *,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     skip: int = 0,
     limit: int = 100
 ):
     """List all accounts"""
-    return crud_account.get_multi(db, skip=skip, limit=limit)
+    return await crud_account.get_multi(db=db, skip=skip, limit=limit)
 
-@router.get("/{account_id}", response_model=schemas.AccountResponse)
-def get_account(
+@router.get("/{account_id}", response_model=AccountResponse)
+async def get_account(
     *,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     account_id: str
 ):
     """Get specific account"""
-    account = crud_account.get(db, id=account_id)
+    account = await crud_account.get(db=db, id=account_id)
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
     return account
 
-@router.put("/{account_id}", response_model=schemas.AccountResponse)
-def update_account(
+@router.patch("/{account_id}", response_model=AccountResponse)
+async def update_account(
     *,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     account_id: str,
-    account_in: schemas.AccountUpdate
+    account_in: AccountUpdate
 ):
     """Update account"""
-    account = crud_account.get(db, id=account_id)
+    account = await crud_account.get(db=db, id=account_id)
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    return crud_account.update(db=db, db_obj=account, obj_in=account_in)
+    return await crud_account.update(db=db, db_obj=account, obj_in=account_in)
 
 @router.delete("/{account_id}")
-def delete_account(
+async def delete_account(
     *,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     account_id: str
 ):
     """Delete account"""
-    account = crud_account.get(db, id=account_id)
+    account = await crud_account.get(db=db, id=account_id)
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    crud_account.remove(db=db, id=account_id)
+    await crud_account.remove(db=db, id=account_id)
     return {"status": "success"} 
