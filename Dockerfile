@@ -13,6 +13,8 @@ ENV PYTHONPATH=/app \
 RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev \
+    default-mysql-client \ 
+    netcat-traditional \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,7 +24,7 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code and configuration
 COPY backend/ backend/
 # COPY alembic.ini .
 # COPY migrations/ migrations/
