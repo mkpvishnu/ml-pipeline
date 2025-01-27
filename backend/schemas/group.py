@@ -9,6 +9,9 @@ class GroupBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
 
+    class Config:
+        from_attributes = True
+
 
 class GroupCreate(GroupBase):
     """Schema for creating a group"""
@@ -20,6 +23,9 @@ class GroupUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
     status: Optional[int] = Field(None, ge=0, le=1)
+
+    class Config:
+        from_attributes = True
 
 
 class GroupResponse(GroupBase):
