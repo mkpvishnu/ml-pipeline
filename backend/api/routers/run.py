@@ -5,7 +5,9 @@ import httpx
 import asyncio
 from datetime import datetime, timedelta
 
-from backend.api.dependencies import get_db, validate_account_id
+from backend.api.dependencies import (
+    get_db, validate_account_id, validate_module, validate_canvas
+)
 from backend.crud import run as crud_run
 from backend.crud import canvas as crud_canvas
 from backend.schemas import run as schemas
@@ -40,6 +42,7 @@ async def list_runs(
     account_id: Annotated[str, Header()],
     canvas_id: str = None,
     module_id: str = None,
+    _: str = Depends(validate_account_id),
     skip: int = 0,
     limit: int = 100
 ):
@@ -51,6 +54,7 @@ async def list_runs(
         )
     
     if canvas_id:
+        await validate_canvas(canvas_id, account_id, db)
         return await crud_run.get_multi_by_canvas(
             db,
             canvas_id=canvas_id,
@@ -58,6 +62,7 @@ async def list_runs(
             limit=limit
         )
     elif module_id:
+        await validate_module(module_id, account_id, db)
         return await crud_run.get_multi_by_module(
             db,
             module_id=module_id,
@@ -77,7 +82,8 @@ async def get_run(
     *,
     db: AsyncSession = Depends(get_db),
     run_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id)
 ):
     """Get specific run"""
     run = await crud_run.get_by_account_and_id(
@@ -128,7 +134,8 @@ async def delete_run(
     *,
     db: AsyncSession = Depends(get_db),
     run_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id)
 ):
     """Delete run"""
     run = await crud_run.get_by_account_and_id(
@@ -167,7 +174,8 @@ async def get_run_status(
     *,
     db: AsyncSession = Depends(get_db),
     run_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id)
 ):
     """Get run status"""
     run = await crud_run.get_by_account_and_id(

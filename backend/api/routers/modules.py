@@ -3,7 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 import httpx
 
-from backend.api.dependencies import get_db, validate_account_id
+from backend.api.dependencies import (
+    get_db, validate_account_id, validate_group, validate_module
+)
 from backend.crud import module as crud_module
 from backend.crud import run as crud_run
 from backend.schemas.module import (
@@ -21,7 +23,9 @@ async def create_module(
     db: AsyncSession = Depends(get_db),
     module_in: ModuleCreate,
     group_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_group(group_id, account_id, x))
 ):
     """Create new module"""
     try:
@@ -40,6 +44,8 @@ async def list_modules(
     db: AsyncSession = Depends(get_db),
     group_id: str,
     account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_group(group_id, account_id, x)),
     skip: int = 0,
     limit: int = 100
 ):
@@ -56,17 +62,16 @@ async def get_module(
     *,
     db: AsyncSession = Depends(get_db),
     module_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
 ):
     """Get specific module"""
-    module = await crud_module.get_by_account_and_id(
+    return await crud_module.get_by_account_and_id(
         db,
         account_id=account_id,
         module_id=module_id
     )
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
-    return module
 
 @router.patch("/{module_id}", response_model=ModuleResponse)
 async def update_module(
@@ -74,7 +79,9 @@ async def update_module(
     db: AsyncSession = Depends(get_db),
     module_id: str,
     module_in: ModuleUpdate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
 ):
     """Update module"""
     module = await crud_module.get_by_account_and_id(
@@ -82,9 +89,6 @@ async def update_module(
         account_id=account_id,
         module_id=module_id
     )
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
-    
     try:
         return await crud_module.update(
             db=db,
@@ -100,7 +104,9 @@ async def update_module_code(
     db: AsyncSession = Depends(get_db),
     module_id: str,
     code_update: ModuleCodeUpdate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
 ):
     """Update module code"""
     module = await crud_module.get_by_account_and_id(
@@ -108,9 +114,6 @@ async def update_module_code(
         account_id=account_id,
         module_id=module_id
     )
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
-    
     return await crud_module.update_code(
         db=db,
         db_obj=module,
@@ -123,7 +126,9 @@ async def update_module_config_schema(
     db: AsyncSession = Depends(get_db),
     module_id: str,
     config_update: ModuleConfigSchemaUpdate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
 ):
     """Update module config schema"""
     module = await crud_module.get_by_account_and_id(
@@ -131,9 +136,6 @@ async def update_module_config_schema(
         account_id=account_id,
         module_id=module_id
     )
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
-    
     return await crud_module.update_config_schema(
         db=db,
         db_obj=module,
@@ -146,7 +148,9 @@ async def update_module_user_config(
     db: AsyncSession = Depends(get_db),
     module_id: str,
     config_update: ModuleUserConfigUpdate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
 ):
     """Update module user config"""
     module = await crud_module.get_by_account_and_id(
@@ -154,9 +158,6 @@ async def update_module_user_config(
         account_id=account_id,
         module_id=module_id
     )
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
-    
     return await crud_module.update_user_config(
         db=db,
         db_obj=module,
@@ -169,6 +170,8 @@ async def run_module(
     db: AsyncSession = Depends(get_db),
     module_id: str,
     account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_module(module_id, account_id, x)),
     background_tasks: BackgroundTasks
 ):
     """Run a module"""
@@ -177,8 +180,6 @@ async def run_module(
         account_id=account_id,
         module_id=module_id
     )
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
     
     # Create run record
     run = await crud_run.create(
@@ -219,7 +220,9 @@ async def delete_module(
     *,
     db: AsyncSession = Depends(get_db),
     module_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
 ):
     """Delete module"""
     module = await crud_module.get_by_account_and_id(
@@ -227,9 +230,6 @@ async def delete_module(
         account_id=account_id,
         module_id=module_id
     )
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
-    
     try:
         await crud_module.delete(db=db, db_obj=module)
         return {"status": "success"}

@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import Column, String, DateTime, BigInteger
+from sqlalchemy import Column, String, DateTime, BigInteger, Enum as SQLAlchemyEnum
 from sqlalchemy.orm import relationship
+import enum
 
 from backend.db.base import Base
 
@@ -11,12 +12,17 @@ if TYPE_CHECKING:
     from .canvas import Canvas  # noqa
     from .run import Run  # noqa
 
+class AccountType(str, enum.Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+
 class Account(Base):
     __tablename__ = "accounts"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     name = Column(String(255), nullable=False)
+    account_type = Column(SQLAlchemyEnum(AccountType), nullable=False, default=AccountType.USER)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

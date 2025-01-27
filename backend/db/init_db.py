@@ -8,7 +8,6 @@ from backend.core.config import settings
 # Import all models to ensure they are registered with SQLAlchemy
 from backend.models.account import Account
 from backend.models.group import Group
-from backend.models.component import Component
 from backend.models.module import Module
 from backend.models.canvas import Canvas
 from backend.models.run import Run

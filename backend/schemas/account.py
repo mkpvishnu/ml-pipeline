@@ -1,14 +1,16 @@
-from typing import Optional, Dict
+from typing import Optional
 from datetime import datetime
 from pydantic import EmailStr, Field, BaseModel
-from .base import BaseSchema, AccountType
+from backend.models.account import AccountType
 
-class AccountBase(BaseSchema):
+class AccountBase(BaseModel):
     """Base Account Schema"""
     name: str = Field(..., min_length=1, max_length=255)
     email: EmailStr
-    account_type: AccountType = AccountType.PERSONAL
-    settings: Dict = Field(default_factory=dict)
+    account_type: AccountType = AccountType.USER
+
+    class Config:
+        from_attributes = True
 
 
 class AccountCreate(AccountBase):
@@ -21,7 +23,9 @@ class AccountUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     email: Optional[EmailStr] = None
     account_type: Optional[AccountType] = None
-    settings: Optional[Dict] = None
+
+    class Config:
+        from_attributes = True
 
 
 class AccountResponse(AccountBase):

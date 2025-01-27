@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 
 from backend.api.dependencies import get_db
-from backend.crud.account import account as crud_account
+from backend.crud import account as crud_account
 from backend.schemas.account import AccountCreate, AccountUpdate, AccountResponse
 
 router = APIRouter()
@@ -22,7 +22,7 @@ async def create_account(
             status_code=400,
             detail="Email already registered"
         )
-    return await crud_account.create(db=db, obj_in=account_in)
+    return await crud_account.create(db=db, obj_in=account_in.model_dump())
 
 @router.get("/", response_model=List[AccountResponse])
 async def list_accounts(
@@ -57,7 +57,11 @@ async def update_account(
     account = await crud_account.get(db=db, id=account_id)
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    return await crud_account.update(db=db, db_obj=account, obj_in=account_in)
+    return await crud_account.update(
+        db=db,
+        db_obj=account,
+        obj_in=account_in.model_dump(exclude_unset=True)
+    )
 
 @router.delete("/{account_id}")
 async def delete_account(
@@ -69,5 +73,5 @@ async def delete_account(
     account = await crud_account.get(db=db, id=account_id)
     if not account:
         raise HTTPException(status_code=404, detail="Account not found")
-    await crud_account.remove(db=db, id=account_id)
+    await crud_account.delete(db=db, db_obj=account)
     return {"status": "success"} 

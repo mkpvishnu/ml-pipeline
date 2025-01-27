@@ -31,3 +31,4 @@ class Module(Base):
     account = relationship("Account", back_populates="modules")
     group = relationship("Group", back_populates="modules")
     parent_module = relationship("Module", remote_side=[id], backref="child_modules") 
+    runs = relationship("Run", back_populates="module")

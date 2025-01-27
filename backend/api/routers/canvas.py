@@ -3,7 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 import httpx
 
-from backend.api.dependencies import get_db, validate_account_id
+from backend.api.dependencies import (
+    get_db, validate_account_id, validate_canvas
+)
 from backend.crud import canvas as crud_canvas
 from backend.crud import run as crud_run
 from backend.schemas.canvas import (
@@ -20,7 +22,8 @@ async def create_canvas(
     *,
     db: AsyncSession = Depends(get_db),
     canvas_in: CanvasCreate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id)
 ):
     """Create new canvas"""
     return await crud_canvas.create(
@@ -34,6 +37,7 @@ async def list_canvases(
     *,
     db: AsyncSession = Depends(get_db),
     account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
     skip: int = 0,
     limit: int = 100
 ):
@@ -50,17 +54,16 @@ async def get_canvas(
     *,
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
 ):
     """Get specific active canvas"""
-    canvas = await crud_canvas.get_by_account_and_id(
+    return await crud_canvas.get_by_account_and_id(
         db,
         account_id=account_id,
         canvas_id=canvas_id
     )
-    if not canvas:
-        raise HTTPException(status_code=404, detail="Canvas not found")
-    return canvas
 
 @router.patch("/{canvas_id}", response_model=CanvasResponse)
 async def update_canvas(
@@ -68,7 +71,9 @@ async def update_canvas(
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
     canvas_in: CanvasUpdate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
 ):
     """Update canvas"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -76,9 +81,6 @@ async def update_canvas(
         account_id=account_id,
         canvas_id=canvas_id
     )
-    if not canvas:
-        raise HTTPException(status_code=404, detail="Canvas not found")
-    
     return await crud_canvas.update(
         db=db,
         db_obj=canvas,
@@ -91,7 +93,9 @@ async def update_canvas_name(
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
     name_update: CanvasNameUpdate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
 ):
     """Update canvas name"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -99,9 +103,6 @@ async def update_canvas_name(
         account_id=account_id,
         canvas_id=canvas_id
     )
-    if not canvas:
-        raise HTTPException(status_code=404, detail="Canvas not found")
-    
     return await crud_canvas.update(
         db=db,
         db_obj=canvas,
@@ -114,7 +115,9 @@ async def update_canvas_module_config(
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
     config_update: CanvasModuleConfigUpdate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
 ):
     """Update canvas module configuration"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -122,9 +125,6 @@ async def update_canvas_module_config(
         account_id=account_id,
         canvas_id=canvas_id
     )
-    if not canvas:
-        raise HTTPException(status_code=404, detail="Canvas not found")
-    
     return await crud_canvas.update_module_config(
         db=db,
         db_obj=canvas,
@@ -136,7 +136,9 @@ async def run_canvas(
     *,
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
 ):
     """Run a canvas"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -144,8 +146,6 @@ async def run_canvas(
         account_id=account_id,
         canvas_id=canvas_id
     )
-    if not canvas:
-        raise HTTPException(status_code=404, detail="Canvas not found")
     
     # Create run record
     run = await crud_run.create(
@@ -185,7 +185,9 @@ async def delete_canvas(
     *,
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
 ):
     """Soft delete canvas"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -193,8 +195,5 @@ async def delete_canvas(
         account_id=account_id,
         canvas_id=canvas_id
     )
-    if not canvas:
-        raise HTTPException(status_code=404, detail="Canvas not found")
-    
     await crud_canvas.soft_delete(db=db, db_obj=canvas)
     return {"status": "success"} 
