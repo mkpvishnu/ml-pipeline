@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, BigInteger
+from sqlalchemy import Column, String, DateTime, ForeignKey, JSON, BigInteger, Integer
 from sqlalchemy.orm import relationship
 
 from backend.db.base import Base
@@ -16,7 +16,9 @@ class Canvas(Base):
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
-    module_config = Column(JSON, default={})  # Stores component positions, connections
+    module_config = Column(JSON, default={})  # Stores module configurations and connections
+    status = Column(Integer, nullable=False, default=1)  # 1: active, 0: deleted
+    deleted_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

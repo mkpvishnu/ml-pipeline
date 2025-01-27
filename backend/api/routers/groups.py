@@ -16,7 +16,11 @@ async def create_group(
     account_id: Annotated[str, Header()]
 ):
     """Create new group"""
-    return await crud.create(db=db, obj_in=group_in, account_id=account_id)
+    return await crud.create(
+        db=db,
+        obj_in=group_in.model_dump(),
+        account_id=account_id
+    )
 
 @router.get("/", response_model=List[GroupResponse])
 async def list_groups(
@@ -26,7 +30,7 @@ async def list_groups(
     skip: int = 0,
     limit: int = 100
 ):
-    """List all groups for an account"""
+    """List all active groups for an account"""
     return await crud.get_multi_by_account(
         db,
         account_id=account_id,
@@ -41,7 +45,7 @@ async def get_group(
     group_id: str,
     account_id: Annotated[str, Header()]
 ):
-    """Get specific group"""
+    """Get specific active group"""
     group = await crud.get_by_account_and_id(
         db,
         account_id=account_id,
@@ -67,7 +71,12 @@ async def update_group(
     )
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
-    return await crud.update(db=db, db_obj=group, obj_in=group_in)
+    
+    return await crud.update(
+        db=db,
+        db_obj=group,
+        obj_in=group_in.model_dump(exclude_unset=True)
+    )
 
 @router.delete("/{group_id}")
 async def delete_group(
@@ -76,7 +85,7 @@ async def delete_group(
     group_id: str,
     account_id: Annotated[str, Header()]
 ):
-    """Delete group"""
+    """Soft delete group"""
     group = await crud.get_by_account_and_id(
         db,
         account_id=account_id,
@@ -84,5 +93,6 @@ async def delete_group(
     )
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
-    await crud.delete(db=db, id=group_id)
+    
+    await crud.soft_delete(db=db, db_obj=group)
     return {"status": "success"} 

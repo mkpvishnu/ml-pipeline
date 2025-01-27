@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict, Any, Union
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
 
 from backend.models.canvas import Canvas
 from backend.schemas.canvas import CanvasCreate, CanvasUpdate
@@ -9,12 +10,15 @@ from backend.schemas.canvas import CanvasCreate, CanvasUpdate
 async def create(
     db: AsyncSession,
     *,
-    obj_in: CanvasCreate,
+    obj_in: Dict[str, Any],
     account_id: str
 ) -> Canvas:
-    """Create new canvas with account_id"""
-    obj_in_data = obj_in.model_dump()
-    db_obj = Canvas(**obj_in_data, account_id=account_id)
+    """Create new canvas"""
+    db_obj = Canvas(
+        **obj_in,
+        account_id=account_id,
+        status=1
+    )
     db.add(db_obj)
     await db.commit()
     await db.refresh(db_obj)
@@ -26,7 +30,10 @@ async def get(
     id: str
 ) -> Optional[Canvas]:
     """Get canvas by ID"""
-    result = await db.execute(select(Canvas).filter(Canvas.id == id))
+    result = await db.execute(
+        select(Canvas)
+        .filter(Canvas.id == id, Canvas.status == 1)
+    )
     return result.scalar_one_or_none()
 
 async def get_multi(
@@ -36,7 +43,12 @@ async def get_multi(
     limit: int = 100
 ) -> List[Canvas]:
     """Get multiple canvases"""
-    result = await db.execute(select(Canvas).offset(skip).limit(limit))
+    result = await db.execute(
+        select(Canvas)
+        .filter(Canvas.status == 1)
+        .offset(skip)
+        .limit(limit)
+    )
     return result.scalars().all()
 
 async def get_multi_by_account(
@@ -49,7 +61,7 @@ async def get_multi_by_account(
     """Get canvases by account ID"""
     result = await db.execute(
         select(Canvas)
-        .filter(Canvas.account_id == account_id)
+        .filter(Canvas.account_id == account_id, Canvas.status == 1)
         .offset(skip)
         .limit(limit)
     )
@@ -64,7 +76,11 @@ async def get_by_account_and_id(
     """Get canvas by account ID and canvas ID"""
     result = await db.execute(
         select(Canvas)
-        .filter(Canvas.account_id == account_id, Canvas.id == canvas_id)
+        .filter(
+            Canvas.account_id == account_id,
+            Canvas.id == canvas_id,
+            Canvas.status == 1
+        )
     )
     return result.scalar_one_or_none()
 
@@ -72,15 +88,12 @@ async def update(
     db: AsyncSession,
     *,
     db_obj: Canvas,
-    obj_in: Union[CanvasUpdate, Dict[str, Any]]
+    obj_in: Dict[str, Any]
 ) -> Canvas:
     """Update canvas"""
-    if isinstance(obj_in, dict):
-        update_data = obj_in
-    else:
-        update_data = obj_in.model_dump(exclude_unset=True)
-    
-    for field, value in update_data.items():
+    for field, value in obj_in.items():
+        if field == "status" and value == 0:
+            setattr(db_obj, "deleted_at", datetime.utcnow())
         setattr(db_obj, field, value)
     
     db.add(db_obj)
@@ -96,6 +109,19 @@ async def update_module_config(
 ) -> Canvas:
     """Update canvas module configuration"""
     db_obj.module_config = module_config
+    db.add(db_obj)
+    await db.commit()
+    await db.refresh(db_obj)
+    return db_obj
+
+async def soft_delete(
+    db: AsyncSession,
+    *,
+    db_obj: Canvas
+) -> Canvas:
+    """Soft delete canvas"""
+    db_obj.status = 0
+    db_obj.deleted_at = datetime.utcnow()
     db.add(db_obj)
     await db.commit()
     await db.refresh(db_obj)

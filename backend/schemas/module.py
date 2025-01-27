@@ -1,54 +1,50 @@
 from typing import Optional, Dict
 from datetime import datetime
+from pydantic import BaseModel, Field
 
-from pydantic import Field
-
-from .base import BaseSchema, ModuleType
-
-class ModuleBase(BaseSchema):
+class ModuleBase(BaseModel):
     """Base Module Schema"""
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
-    type: str = Field(..., pattern="^(default|custom)$")  # "default" or "custom"
-    module_type: ModuleType
-    code: Optional[str] = None  # Python code for script/hybrid types
-    config_schema: Optional[Dict] = None  # JSON schema for config/hybrid types
-
+    identifier: str = Field(..., min_length=1, max_length=255)
+    scope: str = Field(default="account")
+    code: Optional[str] = None
+    config_schema: Dict = {}
+    user_config: Dict = {}
 
 class ModuleCreate(ModuleBase):
     """Schema for creating a module"""
-    pass
+    parent_module_id: Optional[int] = None
 
-
-class ModuleUpdate(BaseSchema):
+class ModuleUpdate(BaseModel):
     """Schema for updating a module"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
-    type: Optional[str] = Field(None, pattern="^(default|custom)$")
-    module_type: Optional[ModuleType] = None
     code: Optional[str] = None
     config_schema: Optional[Dict] = None
+    user_config: Optional[Dict] = None
+    scope: Optional[str] = None
 
-
-class ModuleCodeUpdate(BaseSchema):
+class ModuleCodeUpdate(BaseModel):
     """Schema for updating module code"""
-    code: str = Field(..., min_length=1)
+    code: str
 
-
-class ModuleConfigUpdate(BaseSchema):
+class ModuleConfigSchemaUpdate(BaseModel):
     """Schema for updating module config schema"""
     config_schema: Dict
 
-
-class ModuleNameUpdate(BaseSchema):
-    """Schema for updating module name"""
-    name: str = Field(..., min_length=1, max_length=255)
-
+class ModuleUserConfigUpdate(BaseModel):
+    """Schema for updating module user config"""
+    user_config: Dict
 
 class ModuleResponse(ModuleBase):
     """Schema for module response"""
-    id: int = Field(..., description="Module ID")
-    account_id: int = Field(..., description="Account ID")
-    component_id: int = Field(..., description="Component ID")
+    id: int
+    group_id: int
+    account_id: int
+    parent_module_id: Optional[int] = None
     created_at: datetime
-    updated_at: datetime 
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True 

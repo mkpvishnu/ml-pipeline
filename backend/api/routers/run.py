@@ -9,7 +9,10 @@ from backend.api.dependencies import get_db, validate_account_id
 from backend.crud import run as crud_run
 from backend.crud import canvas as crud_canvas
 from backend.schemas import run as schemas
-from backend.schemas.run import RunCreate, RunUpdate, RunResponse, RunStatus
+from backend.schemas.run import (
+    RunCreate, RunUpdate, RunResponse,
+    RunStatusUpdate, RunStatusResponse
+)
 from backend.core.config import get_settings
 
 settings = get_settings()
@@ -36,29 +39,38 @@ async def list_runs(
     db: AsyncSession = Depends(get_db),
     account_id: Annotated[str, Header()],
     canvas_id: str = None,
+    module_id: str = None,
     skip: int = 0,
     limit: int = 100
 ):
-    """List runs with optional canvas filter"""
+    """List runs with optional canvas/module filter"""
+    if canvas_id and module_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot filter by both canvas_id and module_id"
+        )
+    
     if canvas_id:
-        # Validate canvas belongs to account
-        canvas = await crud_canvas.get(db, id=canvas_id)
-        if not canvas or canvas.account_id != account_id:
-            raise HTTPException(status_code=404, detail="Canvas not found")
-        
         return await crud_run.get_multi_by_canvas(
             db,
             canvas_id=canvas_id,
             skip=skip,
             limit=limit
         )
-    
-    return await crud_run.get_multi_by_account(
-        db,
-        account_id=account_id,
-        skip=skip,
-        limit=limit
-    )
+    elif module_id:
+        return await crud_run.get_multi_by_module(
+            db,
+            module_id=module_id,
+            skip=skip,
+            limit=limit
+        )
+    else:
+        return await crud_run.get_multi_by_account(
+            db,
+            account_id=account_id,
+            skip=skip,
+            limit=limit
+        )
 
 @router.get("/{run_id}", response_model=RunResponse)
 async def get_run(
@@ -75,12 +87,6 @@ async def get_run(
     )
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
-    
-    # Validate run belongs to account through canvas
-    canvas = await crud_canvas.get(db, id=run.canvas_id)
-    if not canvas or canvas.account_id != account_id:
-        raise HTTPException(status_code=404, detail="Run not found")
-    
     return run
 
 @router.post("/{run_id}/cancel")
@@ -132,44 +138,44 @@ async def delete_run(
     )
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
-    await crud_run.delete(db=db, id=run_id)
+    
+    await crud_run.delete(db=db, db_obj=run)
     return {"status": "success"}
 
-@router.post("/{run_id}/status", response_model=schemas.RunResponse)
-def update_run_status(
+@router.post("/{run_id}/status", response_model=RunResponse)
+async def update_run_status(
     *,
     db: AsyncSession = Depends(get_db),
     run_id: str,
-    status_update: schemas.RunStatusUpdate
+    status_update: RunStatusUpdate
 ):
     """Update run status - Called by external service"""
-    run = crud_run.get(db, id=run_id)
+    run = await crud_run.get(db, id=run_id)
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
     
-    return crud_run.update_status(
+    return await crud_run.update_status(
         db=db,
-        run_id=run_id,
+        db_obj=run,
         status=status_update.status,
         results=status_update.results,
         error=status_update.error
     )
 
-@router.get("/{run_id}/status", response_model=schemas.RunStatusResponse)
-def get_run_status(
+@router.get("/{run_id}/status", response_model=RunStatusResponse)
+async def get_run_status(
     *,
     db: AsyncSession = Depends(get_db),
     run_id: str,
     account_id: Annotated[str, Header()]
 ):
     """Get run status"""
-    run = crud_run.get(db, id=run_id)
+    run = await crud_run.get_by_account_and_id(
+        db,
+        account_id=account_id,
+        run_id=run_id
+    )
     if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
-    
-    # Validate run belongs to account through canvas
-    canvas = crud_canvas.get(db, id=run.canvas_id)
-    if not canvas or canvas.account_id != account_id:
         raise HTTPException(status_code=404, detail="Run not found")
     
     return {
