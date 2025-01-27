@@ -22,7 +22,7 @@ async def create_module(
     *,
     db: AsyncSession = Depends(get_db),
     module_in: ModuleCreate,
-    group_id: str,
+    group_id: Annotated[str, Header()],
     account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id),
     __: str = Depends(validate_group)
@@ -42,7 +42,7 @@ async def create_module(
 async def list_modules(
     *,
     db: AsyncSession = Depends(get_db),
-    group_id: str,
+    group_id: Annotated[str, Header()],
     account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id),
     __: str = Depends(validate_group),

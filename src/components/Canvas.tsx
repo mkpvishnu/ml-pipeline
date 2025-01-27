@@ -7,70 +7,66 @@ import ReactFlow, {
   Connection,
   useNodesState,
   useEdgesState,
+  addEdge,
+  BackgroundVariant
 } from 'reactflow';
+import 'reactflow/dist/style.css';
 import useStore from '../store';
 import api from '../services/api';
 import CustomNode from './CustomNode';
+import './Canvas.css';
 
 const nodeTypes = {
   custom: CustomNode,
 };
 
 const Canvas: React.FC = () => {
-  const { currentCanvas, setSelectedModule, setLoading } = useStore();
+  const { currentCanvas, updateCanvas } = useStore();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
+  const onConnect = useCallback((connection: Connection) => {
+    setEdges((eds) => addEdge(connection, eds));
+  }, [setEdges]);
 
-  const onDrop = useCallback(
-    async (event: React.DragEvent) => {
-      event.preventDefault();
+  const onDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
 
-      const moduleId = event.dataTransfer.getData('moduleId');
-      if (!moduleId) return;
+    const moduleId = event.dataTransfer.getData('moduleId');
+    if (!moduleId) return;
 
-      const bounds = event.currentTarget.getBoundingClientRect();
-      const position = {
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
+    const reactFlowBounds = document.querySelector('.react-flow')?.getBoundingClientRect();
+    if (!reactFlowBounds) return;
+
+    const position = {
+      x: event.clientX - reactFlowBounds.left,
+      y: event.clientY - reactFlowBounds.top
+    };
+
+    const newNode: Node = {
+      id: `${moduleId}-${Date.now()}`,
+      type: 'custom',
+      position,
+      data: { moduleId }
+    };
+
+    setNodes((nds) => [...nds, newNode]);
+
+    if (currentCanvas) {
+      const updatedConfig = {
+        nodes: [...nodes, newNode],
+        edges
       };
-
-      setLoading('createCustomModule', true);
-      try {
-        // Create custom module from the dropped one
-        const response = await api.modules.create(moduleId, {
-          parent_module_id: moduleId,
-          scope: 'account'
+      api.canvas.updateConfig(currentCanvas.id, updatedConfig)
+        .then(() => {
+          updateCanvas(currentCanvas.id, { module_config: updatedConfig });
+        })
+        .catch((err) => {
+          console.error('Error updating canvas:', err);
+          setNodes((nds) => nds.filter(n => n.id !== newNode.id));
         });
-
-        const newNode = {
-          id: response.data.id,
-          type: 'custom',
-          position,
-          data: {
-            label: response.data.name,
-            config: response.data.user_config,
-          },
-        };
-
-        setNodes((nds) => [...nds, newNode]);
-      } finally {
-        setLoading('createCustomModule', false);
-      }
-    },
-    [setNodes]
-  );
-
-  const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      setSelectedModule(node.id);
-    },
-    [setSelectedModule]
-  );
+    }
+  }, [nodes, edges, currentCanvas, updateCanvas]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -78,20 +74,24 @@ const Canvas: React.FC = () => {
   }, []);
 
   return (
-    <div className="canvas">
+    <div className="canvas-container">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onNodeClick={onNodeClick}
         onDrop={onDrop}
         onDragOver={onDragOver}
         nodeTypes={nodeTypes}
         fitView
       >
-        <Background />
+        <Background 
+          variant={BackgroundVariant.Dots}
+          gap={16}
+          size={1}
+          color="#444"
+        />
         <Controls />
       </ReactFlow>
 
