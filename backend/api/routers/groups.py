@@ -13,7 +13,7 @@ async def create_group(
     *,
     db: AsyncSession = Depends(get_db),
     group_in: GroupCreate,
-    account_id: Annotated[str, Header(alias="Account-ID", description="Account ID")],
+    account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id)
 ):
     """Create new group"""
@@ -27,7 +27,7 @@ async def create_group(
 async def list_groups(
     *,
     db: AsyncSession = Depends(get_db),
-    account_id: Annotated[str, Header(description="Account ID")],
+    account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id),
     skip: int = 0,
     limit: int = 100
@@ -45,7 +45,7 @@ async def get_group(
     *,
     db: AsyncSession = Depends(get_db),
     group_id: str,
-    account_id: Annotated[str, Header(description="Account ID")],
+    account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id)
 ):
     """Get specific active group"""
@@ -64,7 +64,7 @@ async def update_group(
     db: AsyncSession = Depends(get_db),
     group_id: str,
     group_in: GroupUpdate,
-    account_id: Annotated[str, Header(description="Account ID")],
+    account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id)
 ):
     """Update group"""
@@ -87,7 +87,7 @@ async def delete_group(
     *,
     db: AsyncSession = Depends(get_db),
     group_id: str,
-    account_id: Annotated[str, Header(description="Account ID")],
+    account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id)
 ):
     """Soft delete group"""

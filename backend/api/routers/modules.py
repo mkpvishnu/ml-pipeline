@@ -25,7 +25,7 @@ async def create_module(
     group_id: str,
     account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_group(group_id, account_id, x))
+    __: str = Depends(validate_group)
 ):
     """Create new module"""
     try:
@@ -45,7 +45,7 @@ async def list_modules(
     group_id: str,
     account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_group(group_id, account_id, x)),
+    __: str = Depends(validate_group),
     skip: int = 0,
     limit: int = 100
 ):

@@ -1,0 +1,30 @@
+:root {
+  /* Colors */
+  --background-primary: #1E1E1E;
+  --background-secondary: #252526;
+  --background-tertiary: #2D2D2D;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #CCCCCC;
+  --text-disabled: #888888;
+  
+  --border-light: #404040;
+  --border-medium: #505050;
+  --border-dark: #606060;
+  
+  --accent-primary: #0078D4;
+  --accent-success: #2EA043;
+  --accent-warning: #D29922;
+  --accent-error: #F85149;
+  --accent-info: #58A6FF;
+
+  /* Z-index */
+  --z-index-modal: 1000;
+  --z-index-dropdown: 100;
+  --z-index-tooltip: 200;
+
+  /* Shadows */
+  --shadow-small: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-large: 0 8px 16px rgba(0, 0, 0, 0.3);
+} 

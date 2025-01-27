@@ -14,7 +14,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 async def validate_account_id(
-    account_id: Annotated[str, Header(alias="Account-ID")],
+    account_id: Annotated[str, Header()],
     db: AsyncSession = Depends(get_db)
 ) -> str:
     """Validate account_id exists"""
@@ -27,8 +27,8 @@ async def validate_account_id(
     return account_id
 
 async def validate_group(
-    group_id: Annotated[str, Header(alias="Group-ID")],
-    account_id: Annotated[str, Header(alias="Account-ID")],
+    group_id: Annotated[str, Header()],
+    account_id: Annotated[str, Header()],
     db: AsyncSession = Depends(get_db)
 ) -> str:
     """Validate group exists and belongs to account"""
@@ -50,8 +50,8 @@ async def validate_group(
     return group_id
 
 async def validate_module(
-    module_id: Annotated[str, Header(alias="Module-ID")],
-    account_id: Annotated[str, Header(alias="Account-ID")],
+    module_id: Annotated[str, Header()],
+    account_id: Annotated[str, Header()],
     db: AsyncSession = Depends(get_db)
 ) -> str:
     """Validate module exists and belongs to account"""
@@ -69,7 +69,7 @@ async def validate_module(
 
 async def validate_canvas(
     canvas_id: Annotated[str, Header(alias="Canvas-ID")],
-    account_id: Annotated[str, Header(alias="Account-ID")],
+    account_id: Annotated[str, Header()],
     db: AsyncSession = Depends(get_db)
 ) -> str:
     """Validate canvas exists and belongs to account"""
