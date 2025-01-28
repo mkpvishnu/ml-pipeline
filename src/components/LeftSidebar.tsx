@@ -145,6 +145,42 @@ const LeftSidebar: React.FC = () => {
     }
   };
 
+  const renderModule = (module: Module, groupId: string) => {
+    const isCustomModule = module.scope === 'account';
+
+    return (
+      <div
+        key={module.id}
+        className="module"
+        draggable
+        onDragStart={(e) => onDragStart(e, module.id)}
+      >
+        <div className="module-content">
+          <FiBox className="icon" />
+          <span className="module-name" title={module.name}>{module.name}</span>
+        </div>
+        {isCustomModule && (
+          <div className="module-actions">
+            <button
+              className="action-btn"
+              onClick={(e) => handleEditModule(e, module.id, groupId)}
+              title="Edit Module"
+            >
+              <FiEdit2 className="icon" />
+            </button>
+            <button
+              className="action-btn"
+              onClick={(e) => handleDeleteModule(e, module.id, groupId)}
+              title="Delete Module"
+            >
+              <FiTrash2 className="icon" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="left-sidebar">
@@ -206,35 +242,7 @@ const LeftSidebar: React.FC = () => {
               </div>
               
               <div className={`modules-container ${expandedGroups.has(group.id) ? 'expanded' : ''}`}>
-                {group.modules && group.modules.map(module => (
-                  <div
-                    key={module.id}
-                    className="module"
-                    draggable
-                    onDragStart={(e) => onDragStart(e, module.id)}
-                  >
-                    <div className="module-content">
-                      <FiBox className="icon" />
-                      <span className="module-name">{module.name}</span>
-                    </div>
-                    <div className="module-actions">
-                      <button
-                        className="action-btn"
-                        onClick={(e) => handleEditModule(e, module.id, group.id)}
-                        title="Edit Module"
-                      >
-                        <FiEdit2 className="icon" />
-                      </button>
-                      <button
-                        className="action-btn"
-                        onClick={(e) => handleDeleteModule(e, module.id, group.id)}
-                        title="Delete Module"
-                      >
-                        <FiTrash2 className="icon" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                {group.modules && group.modules.map(module => renderModule(module, group.id))}
                 <button
                   className="add-module-btn"
                   onClick={(e) => handleCreateModule(e, group.id)}
