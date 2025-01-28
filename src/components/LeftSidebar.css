@@ -89,8 +89,6 @@
   border-radius: 4px;
   transition: background-color 0.2s;
   margin-bottom: 4px;
-  min-height: 32px;
-  background-color: #2d2d2d;
 }
 
 .module:hover {
@@ -102,15 +100,10 @@
   align-items: center;
   gap: 8px;
   flex: 1;
-  min-width: 0;
 }
 
 .module-name {
   font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #fff;
 }
 
 .module-actions {
@@ -119,8 +112,6 @@
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
-  margin-left: 8px;
-  flex-shrink: 0;
 }
 
 .module:hover .module-actions {
