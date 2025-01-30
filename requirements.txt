@@ -37,3 +37,4 @@ mypy>=1.7.0
 
 # Markdown to HTML
 markdown2>=2.4.10 
+Werkzeug
