@@ -1,0 +1,23 @@
+{
+    "canvas_id": "retrieval_canvas_001",
+    "canvas_config": [
+        {
+            "module_id": "retrieve_001",
+            "identifier": "vector_retriever",
+            "user_config": {
+                "model": "all-minilm-l6-v2",
+                "index_name": "documents",
+                "namespace": "pdf_docs"
+            }
+        },
+        {
+            "module_id": "assist_001",
+            "identifier": "openai_handler",
+            "user_config": {
+                "model": "gpt-4-turbo-preview",
+                "assistant_name": "Research Assistant",
+                "instructions": "You are a helpful assistant that provides accurate answers based on the given context."
+            }
+        }
+    ]
+}
