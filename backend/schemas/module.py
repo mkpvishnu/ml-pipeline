@@ -10,7 +10,7 @@ class ModuleBase(BaseModel):
     scope: str = Field(default="account")
     code: Optional[str] = None
     config_schema: Dict = {}
-    user_config: Dict = {}
+    user_config: list = []
 
 class ModuleCreate(ModuleBase):
     """Schema for creating a module"""
