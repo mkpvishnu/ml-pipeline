@@ -18,6 +18,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import { useApiRender } from '../context/ApiRenderContext';
+import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
 
 function a11yProps(index) {
   return {
@@ -42,10 +43,10 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
 
   useEffect(() => {
     const fetchGroupsWithModules = async () => {
-      fetch('https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/groups/?skip=0&limit=100', {
+      fetch(`${DOMAIN}/api/v1/groups/?skip=0&limit=100`, {
         headers: {
           'Content-Type': 'application/json',
-          'account-id': 2,
+          'account-id': ACCOUNT_ID,
           accept: 'application/json',
         },
       }).then(response => response.json())

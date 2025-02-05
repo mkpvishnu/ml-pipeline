@@ -14,7 +14,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import AddIcon from '@mui/icons-material/Add';
 import Grid from '@mui/material/Grid2';
-import { exists } from 'fs';
+import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
 
 interface NodeSettingsProps {
   nodeId: string;
@@ -35,6 +35,7 @@ interface ModuleConfig {
 
 const NodeSettings: React.FC<NodeSettingsProps> = ({
   nodeId,
+  groupId,
   onClose,
   nodes,
   edges,
@@ -79,10 +80,11 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     const fetchModule = async () => {
       setIsLoading(true);
       setError(null);
-      fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/modules/${nodeId}?x=nothing`, {
+      fetch(`${DOMAIN}/api/v1/modules/${nodeId}?x=nothing`, {
         headers: {
           'Content-Type': 'application/json',
-          'account-id': 2,
+          'account-id': ACCOUNT_ID,
+          'group-id': groupId,
           accept: 'application/json',
         },
       }).then(response => response.json())

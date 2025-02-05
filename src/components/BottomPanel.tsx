@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiChevronUp, FiChevronDown, FiClock, FiList } from 'react-icons/fi';
 import useStore from '../store';
 import './BottomPanel.css';
+import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
 
 interface BottomPanelProps {
   expanded: boolean;
@@ -21,7 +22,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
     if (run && canvasId) {
       const fetchStream = async () => {
         try {
-          const response = await fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId}/logs`); // Replace with your URL
+          const response = await fetch(`${DOMAIN}/api/v1/canvas/${canvasId}/logs`); // Replace with your URL
   
           // Check if the response is successful
           if (!response.ok) {
@@ -109,10 +110,10 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
   };
 
   const fetchHistory = () => {
-    fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId}/history`, {
+    fetch(`${DOMAIN}/api/v1/canvas/${canvasId}/history`, {
       headers: {
         'Content-Type': 'application/json',
-        'account-id': 2,
+        'account-id': ACCOUNT_ID,
         accept: 'application/json',
       },
     }).then(response => response.json())

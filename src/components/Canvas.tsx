@@ -23,6 +23,7 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import { useApiRender } from '../context/ApiRenderContext';
+import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
 
 interface NodeData {
   moduleId: string;
@@ -49,10 +50,10 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       setEdges([]);
       setSelectedNode(null);
     } else {
-      fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId}`, {
+      fetch(`${DOMAIN}/api/v1/canvas/${canvasId}`, {
         headers: {
           'Content-Type': 'application/json',
-          'account-id': 2,
+          'account-id': ACCOUNT_ID,
           accept: 'application/json',
         },
       }).then(response => response.json())
@@ -128,12 +129,12 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
 
   const handleNodeSave = (node) => {
     console.log({ node, nodes, edges });
-    fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/modules/`, {
+    fetch(`${DOMAIN}/api/v1/modules/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'group-id': node.group_id,
-        'account-id': 2,
+        'account-id': ACCOUNT_ID,
         accept: 'application/json',
       },
       body: JSON.stringify({
@@ -187,11 +188,11 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       module_config: {nodes, edges}
     }
     console.log({ canvasId, payload });
-    fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId || ''}`, {
+    fetch(`${DOMAIN}/api/v1/canvas/${canvasId || ''}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'account-id': 2,
+        'account-id': ACCOUNT_ID,
         accept: 'application/json',
       },
       body: JSON.stringify(payload)
@@ -281,6 +282,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
         {selectedNode && (
           <NodeSettings
             nodeId={selectedNode.id}
+            groupId={selectedNode.group_id}
             onClose={() => setSelectedNode(null)}
             nodes={nodes}
             edges={edges}
