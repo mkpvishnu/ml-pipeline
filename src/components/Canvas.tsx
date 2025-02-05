@@ -128,26 +128,27 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
   }, []);
 
   const handleNodeSave = (node) => {
-    console.log({ node, nodes, edges });
-    fetch(`${DOMAIN}/api/v1/modules/`, {
-      method: 'POST',
+    // console.log({ node, nodes, edges });
+    const IS_CUSTOM = node.type === 'custom';
+    fetch(`${DOMAIN}/api/v1/modules/${IS_CUSTOM ? node.id : 'custom'}`, {
+      method: IS_CUSTOM ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         'group-id': node.group_id,
         'account-id': ACCOUNT_ID,
         accept: 'application/json',
+        ...(IS_CUSTOM ? {} : { "module-id": node.id })
       },
       body: JSON.stringify({
         ...node,
-        "scope": "account",
-        "type": "custom"
+        "parent_module_id": 0
       })
     }).then(response => response.json())
     .then(data => {
       console.log('Success:', data);
       // once save, replace the above response id to sync the selected node
       const updatedNodes = nodes.map((n) => {
-        if (n.id === data.parent_module_id) {
+        if (n.id == data.parent_module_id) {
           return {
             ...n, 
             id: String(data.id), 
@@ -235,9 +236,6 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
 
   // console.log({ nodes, selectedNode });
 
-  // if type default, DRAFT state
-  // if type custom or not default, PUBLISHED state
-  
   return (
     <>
       <div className='node-save'>
