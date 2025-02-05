@@ -23,7 +23,7 @@ class Module(Base):
     parent_module_id = Column(BigInteger, ForeignKey("modules.id"))
     code = Column(Text)
     config_schema = Column(JSON, default={})
-    user_config = Column(JSON, default={})
+    user_config = Column(JSON, default=[])
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

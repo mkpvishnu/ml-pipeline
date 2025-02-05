@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel, Field
 
 from .base import BaseSchema
+from .module import ModuleResponse
 
 class GroupBase(BaseModel):
     """Base Group Schema"""
@@ -36,6 +37,14 @@ class GroupResponse(GroupBase):
     deleted_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class GroupWithModulesResponse(GroupResponse):
+    """Schema for group response with modules"""
+    modules: List[ModuleResponse] = []
 
     class Config:
         from_attributes = True 
