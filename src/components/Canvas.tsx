@@ -59,9 +59,21 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       }).then(response => response.json())
       .then(data => {
         console.log('Success:', data);
-        setCanvasId(data.id);
-        setNodes(data.module_config.nodes.map(n => ({...n, selected: false}) ));
+        // setCanvasId(data.id);
         setEdges(data.module_config.edges);
+        setNodes(data.module_config.nodes.map(n => ({
+          ...n, 
+          data: {
+            ...n.data, 
+            label: <div className='node-parent'>
+            {n.data.label.props.children.map((c => (
+              <>
+                {c.props.className ? <p className={`node-state ${c.props.children}`}>{c.props.children}</p> : <p>{c.props.children}</p>}
+              </>
+            )))}
+          </div>
+          }, 
+          selected: false}) ));
         setSelectedNode(null);
         setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
         // On Canvas  save, create the canvas. Move to Canvas tab.
@@ -197,13 +209,13 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
   const onSaveCanvas = () => {
     const randomTwoDigit = () => Math.floor(10 + Math.random() * 90);
     const payload = {
-      name: `Canvas ${randomTwoDigit()}`,
+      name: canvasId ? '' : `Canvas ${randomTwoDigit()}`,
       description: '',
       module_config: {nodes, edges}
     }
     // console.log({ canvasId, payload });
     fetch(`${DOMAIN}/api/v1/canvas/${canvasId || ''}`, {
-      method: 'POST',
+      method: canvasId ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         'account-id': ACCOUNT_ID,
@@ -214,7 +226,21 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
     .then(data => {
       console.log('Success:', data);
       setCanvasId(data.id);
-      setNodes(data.module_config.nodes.map(n => ({...n, selected: false}) ));
+      // setNodes(data.module_config.nodes.map(n => ({...n, data: {...n.data, label: <>{n.data.moduleData.name}</>}, selected: false}) ));
+      setNodes(data.module_config.nodes.map(n => ({
+        ...n, 
+        data: {
+          ...n.data, 
+          label: <div className='node-parent'>
+            {n.data.label.props.children.map((c => (
+              <>
+                {c.props.className ? <p className={`node-state ${c.props.children}`}>{c.props.children}</p> : <p>{c.props.children}</p>}
+              </>
+            )))}
+          </div>
+        }, 
+        selected: false
+      })));
       setEdges(data.module_config.edges);
       setSelectedNode(null);
       setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
@@ -266,7 +292,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
     });
   }
 
-  // console.log({ nodes, selectedNode });
+  // console.log({ nodes, edges, selectedNode });
 
   return (
     <>

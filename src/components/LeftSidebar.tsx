@@ -38,6 +38,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
   const [selectedModule, setSelectedModule] = useState<{ id: string; groupId: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listCanvas, setListCanvas] = useState([]);
 
   const { shouldRerender } = useApiRender();
 
@@ -64,8 +65,30 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
       });
     };
 
-    fetchGroupsWithModules();
-  }, [shouldRerender]);
+    const fetchCanvas = () => {
+      fetch(`${DOMAIN}/api/v1/canvas/?skip=0&limit=100`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'account-id': ACCOUNT_ID,
+          accept: 'application/json',
+        },
+      }).then(response => response.json())
+      .then(data => {
+        // console.log('Success:', data);
+        setListCanvas(data)
+      }).catch((error) => {
+        console.error('Error fetching canvas:', error);
+        setError('Failed to load canvas');
+        setListCanvas([]);
+      });
+    }
+
+    if (tabValue === 0) {
+      fetchGroupsWithModules();
+    } else {
+      fetchCanvas()
+    }
+  }, [shouldRerender, tabValue]);
 
   // console.log({ groups, expandedGroups });
 
@@ -285,9 +308,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
         </div>
       ): (
         <div className="groups-container">
-          <button className='canvas-btn' onClick={() => onCanvasClick(1)}>Canvas 1</button>
-          <button className='canvas-btn' onClick={() => onCanvasClick(2)}>Canvas 2</button>
-          <button className='canvas-btn' onClick={() => onCanvasClick(3)}>Canvas 3</button>
+          {listCanvas.map(l => <button key={l.id} className='canvas-btn' onClick={() => onCanvasClick(l.id)}>{l.name}</button> )}
         </div>
       )}
 
