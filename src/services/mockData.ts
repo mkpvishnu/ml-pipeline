@@ -3,22 +3,868 @@ import { Group, Module, Canvas, Run } from './api';
 // Mock Data
 export const mockGroups: Group[] = [
   {
-    id: 'g1',
-    name: 'Data Processing',
-    description: 'Modules for data processing and transformation',
-    modules: []
+    "id": "g1",
+    "name": "Data Processing",
+    "description": "Modules for data processing and transformation",
+    "modules": [
+      {
+        "id": "m1",
+        "name": "CSV Reader",
+        "identifier": "csv_reader",
+        "description": "Read data from CSV files",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "filepath",
+                "type": "string",
+                "title": "File Path (Supported: file)",
+                "description": "Path to the CSV file",
+                "required": true
+              },
+              {
+                "id": "delimiter",
+                "type": "string",
+                "title": "Delimiter",
+                "description": "CSV delimiter character",
+                "required": true
+              },
+              {
+                "id": "encoding",
+                "type": "string",
+                "title": "Encoding",
+                "description": "File encoding",
+                "required": true
+              },
+              {
+                "id": "number",
+                "type": "number",
+                "title": "Number",
+                "description": "Please enter no",
+                "required": true
+              },
+              {
+                "id": "toggle",
+                "type": "checkbox",
+                "title": "Toggle",
+                "description": "Please toggle",
+                "required": true
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "filepath": "/data/sample.csv",
+            "delimiter": ",",
+            "encoding": "utf-8",
+            "number": 23,
+            "toggle": true
+          }
+        ],
+        "output_schema": {}
+      },
+      {
+        "id": "m2",
+        "name": "Data Cleaner",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "arraySupported": true,
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "watchOn": "inputType",
+                "options": [
+                  {
+                    "id": "3.5",
+                    "name": "3.5 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.5",
+                    "name": "4.5"
+                  },
+                  {
+                    "id": "5.5",
+                    "name": "5.5"
+                  }
+                ]
+              },
+              {
+                "id": "inputType",
+                "type": "dropdown",
+                "title": "Input Type",
+                "required": true,
+                "dependentOn": "modelVersion",
+                "options": [
+                  {
+                    "id": "text1",
+                    "name": "Text1 Input  (Supported: text)",
+                    "modelVersion": "3.5"
+                  },
+                  {
+                    "id": "file",
+                    "name": "File Upload (Supported: file)",
+                    "modelVersion": "4.5"
+                  },
+                  {
+                    "id": "text2",
+                    "name": "Text2 Input  (Supported: text)",
+                    "modelVersion": "5.5"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "watchOn": "inputType",
+                "options": [
+                  {
+                    "id": "3.51",
+                    "name": "3.51 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.51",
+                    "name": "4.51"
+                  },
+                  {
+                    "id": "5.51",
+                    "name": "5.51"
+                  }
+                ]
+              },
+              {
+                "id": "inputType",
+                "type": "dropdown",
+                "title": "Input Type",
+                "required": true,
+                "dependentOn": "modelVersion",
+                "options": [
+                  {
+                    "id": "file1",
+                    "name": "File1 Upload (Supported: file)",
+                    "modelVersion": "3.51"
+                  },
+                  {
+                    "id": "file2",
+                    "name": "File2 Upload (Supported: file)",
+                    "modelVersion": "4.51"
+                  },
+                  {
+                    "id": "text1",
+                    "name": "Text1 Input (Supported: text)",
+                    "modelVersion": "5.51"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": "5.5",
+            "inputType": "text2"
+          },
+          {
+            "modelVersion": "",
+            "inputType": ""
+          }
+        ],
+        "output_schema": {
+          "string": [
+            {
+              "id": "suma 1",
+              "name": "suma 1"
+            },
+            {
+              "id": "suma 2",
+              "name": "suma 2"
+            }
+          ],
+          "array": [
+            {
+              "id": "suma 111",
+              "name": "suma 11"
+            },
+            {
+              "id": "suma 222",
+              "name": "suma 22"
+            }
+          ]
+        }
+      },
+      {
+        "id": "m3",
+        "name": "Test 3",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "options": [
+                  {
+                    "id": "3.5",
+                    "name": "3.5 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.5",
+                    "name": "4.5"
+                  },
+                  {
+                    "id": "5.5",
+                    "name": "5.5"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": "3.5"
+          }
+        ],
+        "output_schema": {
+          "string": [
+            {
+              "id": "suma 3",
+              "name": "suma 3"
+            },
+            {
+              "id": "suma 4",
+              "name": "suma 4"
+            }
+          ],
+          "array": [
+            {
+              "id": "suma 1111",
+              "name": "suma 1111"
+            },
+            {
+              "id": "suma 2222",
+              "name": "suma 2222"
+            }
+          ]
+        }
+      },
+      {
+        "id": "m4",
+        "name": "Test 4",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "sourceType": "string"
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": ""
+          }
+        ]
+      }
+    ]
   },
   {
-    id: 'g2',
-    name: 'Machine Learning',
-    description: 'ML model training and inference modules',
-    modules: []
+    "id": "g2",
+    "name": "Machine Learning",
+    "description": "ML model training and inference modules",
+    "modules": [
+      {
+        "id": "m1",
+        "name": "CSV Reader",
+        "identifier": "csv_reader",
+        "description": "Read data from CSV files",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "filepath",
+                "type": "string",
+                "title": "File Path (Supported: file)",
+                "description": "Path to the CSV file",
+                "required": true
+              },
+              {
+                "id": "delimiter",
+                "type": "string",
+                "title": "Delimiter",
+                "description": "CSV delimiter character",
+                "required": true
+              },
+              {
+                "id": "encoding",
+                "type": "string",
+                "title": "Encoding",
+                "description": "File encoding",
+                "required": true
+              },
+              {
+                "id": "number",
+                "type": "number",
+                "title": "Number",
+                "description": "Please enter no",
+                "required": true
+              },
+              {
+                "id": "toggle",
+                "type": "checkbox",
+                "title": "Toggle",
+                "description": "Please toggle",
+                "required": true
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "filepath": "/data/sample.csv",
+            "delimiter": ",",
+            "encoding": "utf-8",
+            "number": 23,
+            "toggle": true
+          }
+        ],
+        "output_schema": {}
+      },
+      {
+        "id": "m2",
+        "name": "Data Cleaner",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "arraySupported": true,
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "watchOn": "inputType",
+                "options": [
+                  {
+                    "id": "3.5",
+                    "name": "3.5 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.5",
+                    "name": "4.5"
+                  },
+                  {
+                    "id": "5.5",
+                    "name": "5.5"
+                  }
+                ]
+              },
+              {
+                "id": "inputType",
+                "type": "dropdown",
+                "title": "Input Type",
+                "required": true,
+                "dependentOn": "modelVersion",
+                "options": [
+                  {
+                    "id": "text1",
+                    "name": "Text1 Input  (Supported: text)",
+                    "modelVersion": "3.5"
+                  },
+                  {
+                    "id": "file",
+                    "name": "File Upload (Supported: file)",
+                    "modelVersion": "4.5"
+                  },
+                  {
+                    "id": "text2",
+                    "name": "Text2 Input  (Supported: text)",
+                    "modelVersion": "5.5"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "watchOn": "inputType",
+                "options": [
+                  {
+                    "id": "3.51",
+                    "name": "3.51 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.51",
+                    "name": "4.51"
+                  },
+                  {
+                    "id": "5.51",
+                    "name": "5.51"
+                  }
+                ]
+              },
+              {
+                "id": "inputType",
+                "type": "dropdown",
+                "title": "Input Type",
+                "required": true,
+                "dependentOn": "modelVersion",
+                "options": [
+                  {
+                    "id": "file1",
+                    "name": "File1 Upload (Supported: file)",
+                    "modelVersion": "3.51"
+                  },
+                  {
+                    "id": "file2",
+                    "name": "File2 Upload (Supported: file)",
+                    "modelVersion": "4.51"
+                  },
+                  {
+                    "id": "text1",
+                    "name": "Text1 Input (Supported: text)",
+                    "modelVersion": "5.51"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": "5.5",
+            "inputType": "text2"
+          },
+          {
+            "modelVersion": "",
+            "inputType": ""
+          }
+        ],
+        "output_schema": {
+          "string": [
+            {
+              "id": "suma 1",
+              "name": "suma 1"
+            },
+            {
+              "id": "suma 2",
+              "name": "suma 2"
+            }
+          ],
+          "array": [
+            {
+              "id": "suma 111",
+              "name": "suma 11"
+            },
+            {
+              "id": "suma 222",
+              "name": "suma 22"
+            }
+          ]
+        }
+      },
+      {
+        "id": "m3",
+        "name": "Test 3",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "options": [
+                  {
+                    "id": "3.5",
+                    "name": "3.5 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.5",
+                    "name": "4.5"
+                  },
+                  {
+                    "id": "5.5",
+                    "name": "5.5"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": "3.5"
+          }
+        ],
+        "output_schema": {
+          "string": [
+            {
+              "id": "suma 3",
+              "name": "suma 3"
+            },
+            {
+              "id": "suma 4",
+              "name": "suma 4"
+            }
+          ],
+          "array": [
+            {
+              "id": "suma 1111",
+              "name": "suma 1111"
+            },
+            {
+              "id": "suma 2222",
+              "name": "suma 2222"
+            }
+          ]
+        }
+      },
+      {
+        "id": "m4",
+        "name": "Test 4",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "sourceType": "string"
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": ""
+          }
+        ]
+      }
+    ]
   },
   {
-    id: 'g3',
-    name: 'Visualization',
-    description: 'Data visualization and reporting modules',
-    modules: []
+    "id": "g3",
+    "name": "Visualization",
+    "description": "Data visualization and reporting modules",
+    "modules": [
+      {
+        "id": "m1",
+        "name": "CSV Reader",
+        "identifier": "csv_reader",
+        "description": "Read data from CSV files",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "filepath",
+                "type": "string",
+                "title": "File Path (Supported: file)",
+                "description": "Path to the CSV file",
+                "required": true
+              },
+              {
+                "id": "delimiter",
+                "type": "string",
+                "title": "Delimiter",
+                "description": "CSV delimiter character",
+                "required": true
+              },
+              {
+                "id": "encoding",
+                "type": "string",
+                "title": "Encoding",
+                "description": "File encoding",
+                "required": true
+              },
+              {
+                "id": "number",
+                "type": "number",
+                "title": "Number",
+                "description": "Please enter no",
+                "required": true
+              },
+              {
+                "id": "toggle",
+                "type": "checkbox",
+                "title": "Toggle",
+                "description": "Please toggle",
+                "required": true
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "filepath": "/data/sample.csv",
+            "delimiter": ",",
+            "encoding": "utf-8",
+            "number": 23,
+            "toggle": true
+          }
+        ],
+        "output_schema": {}
+      },
+      {
+        "id": "m2",
+        "name": "Data Cleaner",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "arraySupported": true,
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "watchOn": "inputType",
+                "options": [
+                  {
+                    "id": "3.5",
+                    "name": "3.5 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.5",
+                    "name": "4.5"
+                  },
+                  {
+                    "id": "5.5",
+                    "name": "5.5"
+                  }
+                ]
+              },
+              {
+                "id": "inputType",
+                "type": "dropdown",
+                "title": "Input Type",
+                "required": true,
+                "dependentOn": "modelVersion",
+                "options": [
+                  {
+                    "id": "text1",
+                    "name": "Text1 Input  (Supported: text)",
+                    "modelVersion": "3.5"
+                  },
+                  {
+                    "id": "file",
+                    "name": "File Upload (Supported: file)",
+                    "modelVersion": "4.5"
+                  },
+                  {
+                    "id": "text2",
+                    "name": "Text2 Input  (Supported: text)",
+                    "modelVersion": "5.5"
+                  }
+                ]
+              }
+            ],
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "watchOn": "inputType",
+                "options": [
+                  {
+                    "id": "3.51",
+                    "name": "3.51 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.51",
+                    "name": "4.51"
+                  },
+                  {
+                    "id": "5.51",
+                    "name": "5.51"
+                  }
+                ]
+              },
+              {
+                "id": "inputType",
+                "type": "dropdown",
+                "title": "Input Type",
+                "required": true,
+                "dependentOn": "modelVersion",
+                "options": [
+                  {
+                    "id": "file1",
+                    "name": "File1 Upload (Supported: file)",
+                    "modelVersion": "3.51"
+                  },
+                  {
+                    "id": "file2",
+                    "name": "File2 Upload (Supported: file)",
+                    "modelVersion": "4.51"
+                  },
+                  {
+                    "id": "text1",
+                    "name": "Text1 Input (Supported: text)",
+                    "modelVersion": "5.51"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": "5.5",
+            "inputType": "text2"
+          },
+          {
+            "modelVersion": "",
+            "inputType": ""
+          }
+        ],
+        "output_schema": {
+          "string": [
+            {
+              "id": "suma 1",
+              "name": "suma 1"
+            },
+            {
+              "id": "suma 2",
+              "name": "suma 2"
+            }
+          ],
+          "array": [
+            {
+              "id": "suma 111",
+              "name": "suma 11"
+            },
+            {
+              "id": "suma 222",
+              "name": "suma 22"
+            }
+          ]
+        }
+      },
+      {
+        "id": "m3",
+        "name": "Test 3",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "options": [
+                  {
+                    "id": "3.5",
+                    "name": "3.5 (Supported: text, file)"
+                  },
+                  {
+                    "id": "4.5",
+                    "name": "4.5"
+                  },
+                  {
+                    "id": "5.5",
+                    "name": "5.5"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": "3.5"
+          }
+        ],
+        "output_schema": {
+          "string": [
+            {
+              "id": "suma 3",
+              "name": "suma 3"
+            },
+            {
+              "id": "suma 4",
+              "name": "suma 4"
+            }
+          ],
+          "array": [
+            {
+              "id": "suma 1111",
+              "name": "suma 1111"
+            },
+            {
+              "id": "suma 2222",
+              "name": "suma 2222"
+            }
+          ]
+        }
+      },
+      {
+        "id": "m4",
+        "name": "Test 4",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "modelVersion",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "sourceType": "string"
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "modelVersion": ""
+          }
+        ]
+      }
+    ]
   }
 ];
 
@@ -30,31 +876,58 @@ export const mockModules: Record<string, Module[]> = {
       identifier: 'csv_reader',
       description: 'Read data from CSV files',
       scope: 'global',
+      group_id: 2,
       config_schema: {
-        filepath: {
-          type: 'string',
-          title: 'File Path',
-          description: 'Path to the CSV file',
-          required: true
-        },
-        delimiter: {
-          type: 'string',
-          title: 'Delimiter',
-          description: 'CSV delimiter character',
-          default: ','
-        },
-        encoding: {
-          type: 'string',
-          title: 'Encoding',
-          description: 'File encoding',
-          default: 'utf-8'
-        }
+        fields: [
+          [
+            {
+              id: "filepath",
+              type: "string",
+              title: "File Path (Supported: file)",
+              description: 'Path to the CSV file',
+              required: true,
+            },
+            {
+              id: "delimiter",
+              type: "string",
+              title: "Delimiter",
+              description: 'CSV delimiter character',
+              required: true,
+            },
+            {
+              id: "encoding",
+              type: "string",
+              title: "Encoding",
+              description: 'File encoding',
+              required: true,
+            },
+            {
+              id: "number",
+              type: "number",
+              title: "Number",
+              description: 'Please enter no',
+              required: true,
+            },
+            {
+              id: "toggle",
+              type: "checkbox",
+              title: "Toggle",
+              description: 'Please toggle',
+              required: true,
+            }
+          ]
+        ],
       },
-      user_config: {
-        filepath: '/data/sample.csv',
-        delimiter: ',',
-        encoding: 'utf-8'
-      }
+      user_config: [
+        {
+          filepath: '/data/sample.csv',
+          delimiter: ',',
+          encoding: 'utf-8',
+          number: 23,
+          toggle: true
+        }
+      ],
+      output_schema: {}
     },
     {
       id: 'm2',
@@ -62,35 +935,232 @@ export const mockModules: Record<string, Module[]> = {
       identifier: 'data_cleaner',
       description: 'Clean and preprocess data',
       scope: 'global',
+      arraySupported: true,
       config_schema: {
-        operations: {
-          type: 'array',
-          title: 'Cleaning Operations',
-          description: 'List of cleaning operations to perform',
-          items: {
-            type: 'object',
-            properties: {
-              type: {
-                type: 'string',
-                title: 'Operation Type',
-                description: 'Type of cleaning operation'
-              },
-              column: {
-                type: 'string',
-                title: 'Column',
-                description: 'Column to apply operation on'
-              }
+        fields: [
+          [
+            {
+              id: "modelVersion",
+              type: "dropdown",
+              title: "Model Version",
+              required: true,
+              watchOn: "inputType",
+              options: [
+                {
+                  id: "3.5",
+                  name: "3.5 (Supported: text, file)",
+        
+                },
+                {
+                  id: "4.5",
+                  name: "4.5",
+                },
+                {
+                  id: "5.5",
+                  name: "5.5",
+                }
+              ]
+            },
+            {
+              id: "inputType",
+              type: "dropdown",
+              title: "Input Type",
+              required: true,
+              dependentOn: 'modelVersion',
+              options: [
+                {
+                  id: "text1",
+                  name: "Text1 Input  (Supported: text)",
+                  modelVersion: "3.5",
+                },
+                {
+                  id: "file",
+                  name: "File Upload (Supported: file)",
+                  modelVersion: "4.5",
+                },
+                {
+                  id: "text2",
+                  name: "Text2 Input  (Supported: text)",
+                  modelVersion: "5.5",
+                }
+              ]
             }
-          }
-        }
-      },
-      user_config: {
-        operations: [
-          { type: 'remove_nulls', column: 'age' },
-          { type: 'normalize', column: 'salary' }
+          ],
+          [
+            {
+              id: "modelVersion",
+              type: "dropdown",
+              title: "Model Version",
+              required: true,
+              watchOn: "inputType",
+              options: [
+                {
+                  id: "3.51",
+                  name: "3.51 (Supported: text, file)",
+        
+                },
+                {
+                  id: "4.51",
+                  name: "4.51",
+                },
+                {
+                  id: "5.51",
+                  name: "5.51",
+                }
+              ]
+            },
+            {
+              id: "inputType",
+              type: "dropdown",
+              title: "Input Type",
+              required: true,
+              dependentOn: 'modelVersion',
+              options: [
+                {
+                  id: "file1",
+                  name: "File1 Upload  (Supported: file)",
+                  modelVersion: "3.51",
+                },
+                {
+                  id: "file2",
+                  name: "File2 Upload (Supported: file)",
+                  modelVersion: "4.51",
+
+                },
+                {
+                  id: "text1",
+                  name: "Text1 Input (Supported: text)",
+                  modelVersion: "5.51",
+                }
+              ]
+            }
+          ]
         ]
+      },
+      user_config: [
+        {
+          modelVersion: "5.5",
+          inputType: "text2"
+        },
+        {
+          modelVersion: "", 
+          inputType: ""
+        },
+      ],
+      output_schema: {
+        "string": [
+          {
+            id: "suma 1",
+            name: "suma 1",
+  
+          },
+          {
+            id: "suma 2",
+            name: "suma 2",
+          },
+        ],
+        "array": [
+          {
+            id: "suma 111",
+            name: "suma 11",
+  
+          },
+          {
+            id: "suma 222",
+            name: "suma 22",
+          },
+        ],
       }
+    },
+    {
+      id: 'm3',
+      name: 'Test 3',
+      identifier: 'data_cleaner',
+      description: 'Clean and preprocess data',
+      scope: 'global',
+      config_schema: {
+        fields: [
+          [
+            {
+              id: "modelVersion",
+              type: "dropdown",
+              title: "Model Version",
+              required: true,
+              options: [
+                {
+                  id: "3.5",
+                  name: "3.5 (Supported: text, file)",
+        
+                },
+                {
+                  id: "4.5",
+                  name: "4.5",
+                },
+                {
+                  id: "5.5",
+                  name: "5.5",
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      user_config: [
+        {
+          modelVersion: "3.5"
+        }
+      ],
+      output_schema: {
+        "string": [
+          {
+            id: "suma 3",
+            name: "suma 3",
+  
+          },
+          {
+            id: "suma 4",
+            name: "suma 4",
+          },
+        ],
+        "array": [
+          {
+            id: "suma 1111",
+            name: "suma 1111",
+  
+          },
+          {
+            id: "suma 2222",
+            name: "suma 2222",
+          },
+        ],
+      }
+    },
+    {
+      "id": "m4",
+      "name": "Test 4",
+      "identifier": "data_cleaner",
+      "description": "Clean and preprocess data",
+      "scope": "global",
+      "config_schema": {
+        "fields": [
+          [
+            {
+              "id": "modelVersion",
+              "type": "dropdown",
+              "title": "Model Version",
+              "required": true,
+              "sourceType": "string"
+            }
+          ]
+        ]
+      },
+      "user_config": [
+        {
+          "modelVersion": ""
+        }
+      ]
     }
+    
   ],
   g2: [
     {

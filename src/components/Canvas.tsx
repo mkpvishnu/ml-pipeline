@@ -1,26 +1,28 @@
-import React, { useCallback, useState, useRef } from 'react';
-import ReactFlow, {
+import React, { useCallback, useState, useRef, useEffect } from 'react';
+import {
+  
+  ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
   Node,
-  Edge,
-  Connection,
   useNodesState,
   useEdgesState,
   addEdge,
   BackgroundVariant,
   NodeTypes,
-  XYPosition,
-  ReactFlowInstance,
-  ReactFlowProvider
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+  useReactFlow,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import useStore from '../store';
-import api from '../services/api';
 import CustomNode from './CustomNode';
 import NodeSettings from './NodeSettings';
-import CanvasSettings from './CanvasSettings';
+// import CanvasSettings from './CanvasSettings';
 import './Canvas.css';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid2';
+import { useApiRender } from '../context/ApiRenderContext';
 
 interface NodeData {
   moduleId: string;
@@ -33,20 +35,37 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode
 };
 
-const CanvasFlow: React.FC = () => {
-  const { currentCanvas, updateCanvas } = useStore();
-  const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
+const CanvasFlow: React.FC = ({canvasId, setCanvasId}) => {
+  // console.log({ canvasId, setCanvasId });
+  
+  // const { currentCanvas, updateCanvas } = useStore();
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<{ id: string; moduleId: string } | null>(null);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
-  const onConnect = useCallback((connection: Connection) => {
-    setEdges((eds) => addEdge(connection, eds));
-  }, [setEdges]);
+  const { setShouldRerender } = useApiRender();
 
-  const onInit = useCallback((instance: ReactFlowInstance) => {
-    setReactFlowInstance(instance);
+  useEffect(() => {
+    setNodes([]);
+      setEdges([]);
+      setSelectedNode(null);
+    if (canvasId) {
+      // fetch canvas to populate nodes and edges
+      console.log('fetch canvas to populate nodes and edges');
+    }
+  }, [canvasId]);
+
+  const { screenToFlowPosition } = useReactFlow();
+
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [],
+  );
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
   }, []);
 
   const onDrop = useCallback((event: React.DragEvent) => {
@@ -54,222 +73,156 @@ const CanvasFlow: React.FC = () => {
 
     try {
       const moduleId = event.dataTransfer.getData('moduleId');
+      const groupId = event.dataTransfer.getData('groupId');
       const moduleData = JSON.parse(event.dataTransfer.getData('moduleData'));
-      
-      if (!moduleId || !reactFlowInstance || !reactFlowWrapper.current) return;
 
-      const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
-      const position = reactFlowInstance.project({
-        x: event.clientX - reactFlowBounds.left,
-        y: event.clientY - reactFlowBounds.top
+      if (!moduleId || !reactFlowWrapper.current) return;
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
       });
-
-      const newNode: Node<NodeData> = {
-        id: `${moduleId}-${Date.now()}`,
-        type: 'custom',
+      const newNode = {
+        id: moduleId,
         position,
         data: {
+          label: moduleData.name,
           moduleId,
-          name: moduleData.name,
-          description: moduleData.description,
-          user_config: moduleData.user_config || {}
+          // name: moduleData.name,
+          moduleData,
+          groupId
         }
       };
-
-      setNodes((nds) => [...nds, newNode]);
-      setSelectedNode({ id: newNode.id, moduleId });
+ 
+      setNodes((nds) => nds.concat(newNode));
+      setSelectedNode({ id: newNode.id, group_id: groupId });
     } catch (err) {
       console.error('Error creating node:', err);
     }
-  }, [reactFlowInstance, setNodes]);
-
-  const onDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const handleNodeSave = useCallback((nodeId: string, config: any) => {
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === nodeId
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                name: config.name,
-                description: config.description,
-                user_config: config.user_config
-              }
-            }
-          : node
-      )
-    );
-
-    if (currentCanvas) {
-      const updatedConfig = {
-        nodes: nodes.map(node =>
-          node.id === nodeId
-            ? {
-                id: node.id,
-                type: node.type || 'custom',
-                position: node.position,
-                data: {
-                  ...node.data,
-                  name: config.name,
-                  description: config.description,
-                  user_config: config.user_config
-                }
-              }
-            : {
-                id: node.id,
-                type: node.type || 'custom',
-                position: node.position,
-                data: node.data
-              }
-        ),
-        edges: edges.map(edge => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          type: edge.type
-        }))
-      };
-
-      api.canvas.updateConfig(currentCanvas.id, updatedConfig)
-        .then(() => {
-          updateCanvas(currentCanvas.id, { module_config: updatedConfig });
-        })
-        .catch((err) => {
-          console.error('Error updating canvas:', err);
-        });
-    }
-  }, [nodes, edges, currentCanvas, updateCanvas]);
-
-  const onNodeDragStop = useCallback((event: React.MouseEvent, node: Node) => {
-    if (currentCanvas) {
-      const updatedConfig = {
-        nodes: nodes.map(n => ({
-          id: n.id,
-          type: n.type || 'custom',
-          position: n.position,
-          data: n.data,
-          style: n.style
-        })),
-        edges
-      };
-
-      api.canvas.updateConfig(currentCanvas.id, updatedConfig)
-        .then(() => {
-          updateCanvas(currentCanvas.id, { module_config: updatedConfig });
-        })
-        .catch((err) => {
-          console.error('Error updating canvas:', err);
-        });
-    }
-  }, [nodes, edges, currentCanvas, updateCanvas]);
-
-  const onNodeResize = useCallback((event: MouseEvent, node: Node<NodeData>) => {
-    const updatedNodes = nodes.map(n => {
-      if (n.id === node.id) {
-        const style = {
-          width: typeof node.width === 'number' ? node.width : undefined,
-          height: typeof node.height === 'number' ? node.height : undefined
-        };
-        return {
-          ...n,
-          style
-        };
-      }
-      return n;
-    });
-
-    setNodes(updatedNodes as Node<NodeData>[]);
-
-    // Update canvas config after resize
-    if (currentCanvas) {
-      const updatedConfig = {
-        nodes: updatedNodes.map(n => ({
-          id: n.id,
-          type: n.type || 'custom',
-          position: n.position,
-          data: n.data,
-          style: n.style
-        })),
-        edges
-      };
-
-      api.canvas.updateConfig(currentCanvas.id, updatedConfig)
-        .then(() => {
-          updateCanvas(currentCanvas.id, { module_config: updatedConfig });
-        })
-        .catch((err) => {
-          console.error('Error updating canvas:', err);
-        });
-    }
-  }, [nodes, edges, currentCanvas, updateCanvas]);
+  }, [screenToFlowPosition]);
 
   // Add onNodeClick handler to select nodes
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node<NodeData>) => {
-    setSelectedNode({ id: node.id, moduleId: node.data.moduleId });
+    setSelectedNode({ id: node.id, group_id: node.data.group_id  });
   }, []);
 
+  const handleNodeSave = (node) => {
+    console.log({ node, nodes, edges });
+    fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/modules/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'group-id': node.group_id,
+        'account-id': 2,
+        accept: 'application/json',
+      },
+      body: JSON.stringify(node)
+    }).then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      // once save, replace the above response id to sync the selected node
+      const updatedNodes = nodes.map((n) => {
+        if (n.id === data.parent_module_id) {
+          return {...n, id: String(data.id), data: { ...data, label: data.name }};
+        }
+        return n;
+      });
+      setNodes(updatedNodes);
+      const updatedEdges = edges.map((e) => {
+        if (e.source === data.parent_module_id) {
+          return { ...e, source: String(data.id) };
+        }
+        return e;
+      });
+      setEdges(updatedEdges);
+      setSelectedNode(null);
+      setShouldRerender(prev => !prev);
+      // Left side bar updates under modules tab if its focussed
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
+  }
+
+  const onSaveCanvas = () => {
+    console.log({ nodes, edges });
+    // On Canvas  save, create the canvas. Move to Canvas tab.
+    // On clicking of it, it should show the nodes with their configuration.
+    // Existing module config can be updated.
+    // To drag new module, click on module tab to drop the modules on existing canvas
+  }
+
+  const onNewCanvas = () => {
+    setCanvasId('');
+    setNodes([]);
+    setEdges([]);
+    setSelectedNode(null);
+  }
+
+  const onResetCanvas = () => {
+    // fetch canvas to populate nodes and edges
+    console.log('fetch canvas to populate nodes and edges', {canvasId});
+  }
+
+  // console.log({ nodes, selectedNode });
+  
   return (
-    <div className="canvas-wrapper">
-      <div className="canvas-container" ref={reactFlowWrapper}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onInit={onInit}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onNodeDragStop={onNodeDragStop}
-          onNodeClick={onNodeClick}
-          nodeTypes={nodeTypes}
-          snapToGrid
-          snapGrid={[15, 15]}
-          defaultEdgeOptions={{
-            type: 'smoothstep',
-            animated: true,
-            style: { stroke: '#666', strokeWidth: 2 }
-          }}
-          fitView
-        >
-          <Background 
-            variant={BackgroundVariant.Dots}
-            gap={16}
-            size={1}
-            color="#444"
-          />
-          <Controls />
-        </ReactFlow>
+    <>
+      <div className='node-save'>
+        <Box sx={{ flexGrow: 1 }}>
+          <Grid container spacing={1}>
+            {canvasId ? <Button size="small" variant="outlined" onClick={onNewCanvas}>New</Button> : null}
+            {canvasId ? <Button size="small" variant="outlined" onClick={onResetCanvas}>Reset</Button> : null}
+            <Button size="small" variant="contained" onClick={onSaveCanvas}>Save</Button>
+          </Grid>
+        </Box>
       </div>
+      <div className="canvas-wrapper">
+        <div className="canvas-container" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onNodeClick={onNodeClick}
+            nodeTypes={nodeTypes}
+            fitView
+            style={{ backgroundColor: "#F7F9FB" }}
+          >
+            <Background 
+              variant={BackgroundVariant.Dots}
+              gap={16}
+              size={1}
+              color="#444"
+            />
+            <Controls />
+          </ReactFlow>
+        </div>
 
-      {currentCanvas && (
-        <CanvasSettings canvasId={currentCanvas.id} />
-      )}
+        {/* {currentCanvas && (
+          <CanvasSettings canvasId={currentCanvas.id} />
+        )} */}
 
-      {selectedNode && (
-        <NodeSettings
-          nodeId={selectedNode.id}
-          moduleId={selectedNode.moduleId}
-          onClose={() => setSelectedNode(null)}
-          onSave={(config) => {
-            handleNodeSave(selectedNode.id, config);
-            setSelectedNode(null);
-          }}
-        />
-      )}
+        {selectedNode && (
+          <NodeSettings
+            nodeId={selectedNode.id}
+            onClose={() => setSelectedNode(null)}
+            nodes={nodes}
+            edges={edges}
+            handleNodeSave={handleNodeSave}
+          />
+        )}
     </div>
+    </>
   );
 };
 
 // Wrap the component with ReactFlowProvider
-const Canvas: React.FC = () => (
+const Canvas: React.FC = (props) => (
   <ReactFlowProvider>
-    <CanvasFlow />
+    <CanvasFlow {...props} />
   </ReactFlowProvider>
 );
 

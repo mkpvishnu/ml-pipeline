@@ -2,10 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import api from '../services/api';
 import './NodeSettings.css';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Switch from '@mui/material/Switch';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import AddIcon from '@mui/icons-material/Add';
+import Grid from '@mui/material/Grid2';
 
 interface NodeSettingsProps {
   nodeId: string;
-  moduleId: string;
   onClose: () => void;
   onSave: (config: {
     name: string;
@@ -23,149 +34,209 @@ interface ModuleConfig {
 
 const NodeSettings: React.FC<NodeSettingsProps> = ({
   nodeId,
-  moduleId,
   onClose,
-  onSave,
+  nodes,
+  edges,
+  handleNodeSave
 }) => {
+  
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [module, setModule] = useState<ModuleConfig | null>(null);
+  const [updatedModule, setUpdatedModule] = useState<ModuleConfig | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [userConfig, setUserConfig] = useState<Record<string, any>>({});
+  const [userConfig, setUserConfig] = useState([]);
+
+  // useEffect(() => {
+  //   const fetchModule = async () => {
+  //     try {
+  //       setIsLoading(true);
+  //       setError(null);
+  //       const response = await api.modules.get(nodeId);
+  //       if (response.data) {
+  //         setModule(response.data);
+  //         setUpdatedModule(response.data);
+  //         setName(response.data.name);
+  //         setDescription(response.data.description || '');
+  //         setUserConfig(response.data.user_config || []);
+  //       } else {
+  //         setError('Module not found');
+  //       }
+  //     } catch (err) {
+  //       console.error('Error fetching module:', err);
+  //       setError('Failed to load module configuration');
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchModule();
+  // }, [nodeId]);
 
   useEffect(() => {
+    
     const fetchModule = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await api.modules.get(moduleId);
-        if (response.data) {
-          setModule(response.data);
-          setName(response.data.name);
-          setDescription(response.data.description || '');
-          setUserConfig(response.data.user_config || {});
-        } else {
-          setError('Module not found');
+      setIsLoading(true);
+      setError(null);
+      fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/modules/${nodeId}?x=nothing`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'account-id': 2,
+          accept: 'application/json',
+        },
+      }).then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        data = {
+          ...data,
+          "scope": "account",
+          "type": "custom",
         }
-      } catch (err) {
+        setModule(data);
+        setUpdatedModule(data);
+        setName(data.name);
+        setDescription(data.description || '');
+        setUserConfig(data.user_config || []);
+      }).catch((err) => {
         console.error('Error fetching module:', err);
         setError('Failed to load module configuration');
-      } finally {
+      }).finally(() => {
         setIsLoading(false);
-      }
+      });
     };
 
-    fetchModule();
-  }, [moduleId]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      name,
-      description,
-      user_config: userConfig,
-    });
-  };
+    if (nodeId) {
+      fetchModule();
+    }
+  }, [nodeId]);
 
   const renderSchemaField = (
-    key: string,
-    schema: any,
-    value: any,
-    onChange: (value: any) => void
+    field, idx
   ) => {
-    switch (schema.type) {
+    // module.arraySupported
+    // module.user_config
+    const config = userConfig[idx];
+    const {id, type, title, description, options, watchOn, dependentOn, sourceType} = field;
+    let parentNodes = [];
+    let sourceOptions = [];
+    // console.log({field, idx, watchOn, dependentOn, module, userConfig, config, sourceType, edges});
+    
+    if (sourceType) {
+      parentNodes = edges?.filter(ed => ed.target === nodeId);
+      // console.log({ nodeId, sourceType, edges, parentNodes });
+
+      parentNodes.forEach(p => {
+        const source = p.source;
+        const selectedModule = nodes.find(n => n.id === source)
+        // console.log({ nodes, source, selectedModule });
+        if (selectedModule.data.moduleData?.output_schema[sourceType]) {
+          sourceOptions = [...sourceOptions, ...selectedModule.data.moduleData.output_schema[sourceType]]
+        }
+      })
+    }
+
+    const handleChange = (value) => {
+      setUserConfig(prevConfig =>
+        prevConfig.map((conf, i) =>
+          i === idx
+            ? { ...conf, [id]: value }
+            : conf
+        )
+      );
+
+      const items = module?.config_schema.fields[idx];
+      const watchIdx = items.findIndex(f => f.id === watchOn);
+      const watchItm = items.find(f => f.id === watchOn);
+      // console.log({ id, value, idx, watchOn, items, watchIdx, watchItm});
+
+      setUpdatedModule(prevModule => ({
+        ...prevModule,
+        config_schema: {
+          ...prevModule?.config_schema,
+          fields: module.config_schema.fields.map((f, i) =>
+            i === idx 
+              ? f.map((lf, li) =>
+                li === watchIdx
+                  ? { ...lf, options: lf.options.filter(s => s[id] === value) }
+                  : lf
+              )
+              : f
+          )
+        },
+        user_config: updatedModule.user_config.map((conf, i) =>
+          i === idx
+            ? { ...conf, [id]: value }
+            : conf
+        )
+      }))
+    }
+
+    switch (type) {
       case 'string':
         return (
-          <input
-            type="text"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={schema.description}
+          <TextField
+            fullWidth
+            label={title} 
+            value={config[id]}
+            onChange={(e) => {
+              handleChange(e.target.value)
+            }}
+            placeholder={description} 
+            size="small"
           />
         );
       case 'number':
         return (
-          <input
+          <TextField
             type="number"
-            value={value || ''}
-            onChange={(e) => onChange(Number(e.target.value))}
-            placeholder={schema.description}
+            fullWidth
+            label={title} 
+            value={config[id]}
+            onChange={(e) => {
+              handleChange(e.target.value)
+            }}
+            placeholder={description} 
+            size="small"
           />
         );
-      case 'boolean':
+      case 'checkbox':
         return (
-          <label className="toggle-switch">
-            <input
-              type="checkbox"
-              checked={value || false}
-              onChange={(e) => onChange(e.target.checked)}
-            />
-            <span className="toggle-slider" />
-          </label>
-        );
-      case 'array':
-        return (
-          <div className="array-field">
-            {(value || []).map((item: any, index: number) => (
-              <div key={index} className="array-item">
-                <div className="array-item-content">
-                  {renderSchemaField(
-                    `${key}.${index}`,
-                    schema.items,
-                    item,
-                    (newValue) => {
-                      const newArray = [...(value || [])];
-                      newArray[index] = newValue;
-                      onChange(newArray);
-                    }
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="array-item-remove"
-                  onClick={() => {
-                    const newArray = [...(value || [])];
-                    newArray.splice(index, 1);
-                    onChange(newArray);
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Switch 
+                  checked={config[id]}
+                  onChange={(e) => {
+                    handleChange(e.target.checked)
                   }}
-                >
-                  <FiX />
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              className="btn btn-secondary array-add"
-              onClick={() => onChange([...(value || []), null])}
-            >
-              Add Item
-            </button>
-          </div>
+                />
+              }
+              label={title}
+            />
+          </FormGroup>
         );
-      case 'object':
+      case 'dropdown':
+        const updatedOptions = sourceType ? sourceOptions : options;
         return (
-          <div className="object-field">
-            <div className="object-field-properties">
-              {Object.entries(schema.properties || {}).map(([propKey, propSchema]: [string, any]) => (
-                <div key={propKey} className="schema-field">
-                  <div className="schema-field-header">
-                    <div className="schema-field-title">{propSchema.title || propKey}</div>
-                    {propSchema.description && (
-                      <div className="schema-field-description">{propSchema.description}</div>
-                    )}
-                  </div>
-                  {renderSchemaField(
-                    `${key}.${propKey}`,
-                    propSchema,
-                    (value || {})[propKey],
-                    (newValue) => onChange({ ...(value || {}), [propKey]: newValue })
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
+          <FormControl fullWidth size="small">
+            <InputLabel id="demo-simple-select-label">{title}</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={config[id]}
+              label={title}
+              onChange={(e) => {
+                handleChange(e.target.value)
+              }}
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              {updatedOptions?.map((opt, id) =>  <MenuItem key={id} value={opt.id}>{opt.name}</MenuItem>)}
+            </Select>
+          </FormControl>
+        )
       default:
         return null;
     }
@@ -183,62 +254,120 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     );
   }
 
+  const addSet = () => {
+    const localUpdatedModule = {
+      ...updatedModule,
+      config_schema: {
+        ...updatedModule.config_schema,
+        fields: [
+          ...updatedModule.config_schema.fields,
+          updatedModule.config_schema.fields[0]
+        ]
+      },
+      user_config: [
+        ...updatedModule.user_config,
+        updatedModule.user_config[0]
+      ]
+    }
+    setModule({
+      ...module,
+      config_schema: {
+        ...module.config_schema,
+        fields: [
+          ...module.config_schema.fields,
+          module.config_schema.fields[0]
+        ]
+      },
+      user_config: [
+        ...module.user_config,
+        module.user_config[0]
+      ]
+    });
+    setUpdatedModule(localUpdatedModule);
+    setUserConfig([...userConfig, updatedModule.user_config[0]])
+  }
+
+  const onSave = () => {
+    // console.log({ userConfig, updatedModule });
+    handleNodeSave({...updatedModule, name, description});
+  }
+
+  // console.log({ nodeId, node, module, userConfig });
+  // console.log(module, name, description);
+
   return (
     <div className="node-settings">
       <div className="node-settings-header">
-        <div className="node-settings-title">Node Settings</div>
+        <div className="node-settings-title">Module Settings</div>
         <button className="node-settings-close" onClick={onClose}>
           <FiX />
         </button>
       </div>
 
       <div className="node-settings-content">
-        <form onSubmit={handleSubmit} className="schema-form">
+        <form className="schema-form">
           <div className="form-group">
-            <label>Name</label>
-            <input
-              type="text"
+            <TextField
+              label={"Name"} 
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              fullWidth
+              size="small"
             />
           </div>
 
           <div className="form-group">
-            <label>Description</label>
-            <textarea
+            <TextField
+              multiline
+              label={"Description"} 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              fullWidth
+              size="small"
             />
           </div>
 
-          {module.config_schema && Object.entries(module.config_schema).map(([key, schema]) => (
-            <div key={key} className="schema-field">
-              <div className="schema-field-header">
-                <div className="schema-field-title">{schema.title || key}</div>
-                {schema.description && (
-                  <div className="schema-field-description">{schema.description}</div>
-                )}
+          {updatedModule.config_schema && updatedModule.config_schema.fields.map((field, idx) => (
+            <div key={idx}>
+              <div className='mb'>
+                {updatedModule.config_schema.fields.length > 1 ? `Record ${idx +1}` : null}
               </div>
-              {renderSchemaField(
-                key,
-                schema,
-                userConfig[key],
-                (value) => setUserConfig({ ...userConfig, [key]: value })
-              )}
+              {field.map((f, id) => (
+                <div className="form-group" key={id}>
+                  {/* <div className="schema-field-header">
+                    <div className="schema-field-title">{schema.title || key}</div>
+                    {schema.description && (
+                      <div className="schema-field-description">{schema.description}</div>
+                    )}
+                  </div> */}
+                  <Box
+                    noValidate
+                    autoComplete="off"
+                  >
+                    
+                    {renderSchemaField(
+                      f,
+                      idx,
+                    )}
+                  </Box>
+                </div>
+              ))}
             </div>
           ))}
-
-          <div className="node-settings-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Save Changes
-            </button>
-          </div>
+          <Grid container spacing={2}>
+            {updatedModule.arraySupported && (
+              <Grid offset={{ md: 'auto' }}>
+                <Button startIcon={<AddIcon />} variant="contained" onClick={addSet}>Add</Button>
+              </Grid>
+            )}
+          </Grid>
         </form>
+      </div>
+
+      <div className="node-settings-footer">
+        <Button variant="outlined" onClick={onClose}>Cancel</Button>
+        <Button variant="contained" onClick={onSave}>Save</Button>
       </div>
     </div>
   );
