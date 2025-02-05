@@ -22,7 +22,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
     if (run && canvasId) {
       const fetchStream = async () => {
         try {
-          const response = await fetch(`${DOMAIN}/api/v1/runs/${run}`); // Replace with your URL
+          const response = await fetch(`${DOMAIN}/api/v1/canvas/${run}/run`); // Replace with your URL
   
           // Check if the response is successful
           if (!response.ok) {
