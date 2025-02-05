@@ -15,32 +15,44 @@ import { ApiRenderProvider } from './context/ApiRenderContext';
 
 const App: React.FC = () => {
   const { 
-    isSettingsOpen, 
-    selectedModuleId,
+    // isSettingsOpen, 
+    // selectedModuleId,
     isBottomPanelExpanded 
   } = useStore();
 
   // provide a reset/clear button to clear the canvas
   const [canvasId, setCanvasId] =  useState('');
   const [tabValue, setTabValue] = useState(0);
+  const [run, setRun] = useState(false);
+
+  const props = {
+    canvasId,
+    setCanvasId,
+    tabValue,
+    setTabValue,
+    run,
+    setRun
+  }
 
   return (
     <ApiRenderProvider>
       <div className="app-container">
         <TopBar />
         <div className="main-content">
-          <LeftSidebar canvasId={canvasId} setCanvasId={setCanvasId} tabValue={tabValue} setTabValue={setTabValue} />
+          <LeftSidebar {...props} />
           <div className="canvas-container">
-              <Canvas canvasId={canvasId} setCanvasId={setCanvasId} tabValue={tabValue} setTabValue={setTabValue} />
+              <Canvas {...props} />
           </div>
-          {isSettingsOpen && selectedModuleId && (
+          {/* {isSettingsOpen && selectedModuleId && (
             <RightDrawer 
               moduleId={selectedModuleId} 
             />
-          )}
+          )} */}
         </div>
         <BottomPanel 
           expanded={isBottomPanelExpanded} 
+          run={run}
+          canvasId={canvasId}
         />
       </div>
     </ApiRenderProvider>

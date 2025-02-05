@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiChevronUp, FiChevronDown, FiClock, FiList } from 'react-icons/fi';
 import useStore from '../store';
+import './BottomPanel.css';
 
 interface BottomPanelProps {
   expanded: boolean;
 }
 
-const BottomPanel: React.FC<BottomPanelProps> = ({ expanded }) => {
+const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) => {
   const { 
     activeBottomTab,
     setActiveBottomTab,
@@ -14,19 +15,56 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded }) => {
     runs
   } = useStore();
 
+  const [content, setContent] = useState(''); // State to hold the streamed content
+
+  useEffect(() => {
+    if (run && canvasId) {
+      const fetchStream = async () => {
+        try {
+          const response = await fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId}/logs`); // Replace with your URL
+  
+          // Check if the response is successful
+          if (!response.ok) {
+            console.error('Failed to fetch data:', response.status);
+            // setLoading(false);
+            return;
+          }
+  
+          // Get the ReadableStream from the response body
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let done = false;
+          let chunk = '';
+  
+          // Read and display chunks of data
+          while (!done) {
+            const { value, done: doneReading } = await reader.read();
+            done = doneReading;
+  
+            // Decode and append the chunk
+            chunk += decoder.decode(value, { stream: true });
+  
+            // Update the content state to render the streamed data
+            setContent(prevContent => prevContent + chunk);
+          }
+  
+          // setLoading(false); // Stream has finished loading
+        } catch (error) {
+          console.error('Error streaming data:', error);
+          // setLoading(false);
+        }
+      };
+      fetchStream(); 
+    }
+  }, [run, canvasId]);
+
+  // console.log({ expanded, run, canvasId });
+
   const renderContent = () => {
     switch (activeBottomTab) {
       case 'logs':
         return (
-          <div className="logs">
-            {Object.values(runs).map((run) => (
-              run.logs.map((log, index) => (
-                <div key={`${run.id}-${index}`} className="log-line">
-                  {log}
-                </div>
-              ))
-            ))}
-          </div>
+          <div id="output">{content}</div>
         );
 
       case 'history':
@@ -70,6 +108,21 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded }) => {
     }
   };
 
+  const fetchHistory = () => {
+    fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId}/history`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'account-id': 2,
+        accept: 'application/json',
+      },
+    }).then(response => response.json())
+    .then(data => {
+      console.log('fetch history data', { data });
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
+  }
+
   return (
     <div className={`bottom-panel ${expanded ? 'expanded' : ''}`}>
       <div className="panel-header">
@@ -83,7 +136,10 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded }) => {
           </button>
           <button
             className={`tab ${activeBottomTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveBottomTab('history')}
+            onClick={() => {
+              setActiveBottomTab('history')
+              fetchHistory()
+            }}
           >
             <FiClock className="icon" />
             <span>History</span>
@@ -108,132 +164,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded }) => {
           {renderContent()}
         </div>
       )}
-
-      <style jsx>{`
-        .bottom-panel {
-          background-color: var(--background-secondary);
-          border-top: 1px solid var(--border-light);
-          transition: height 0.2s ease;
-          height: ${expanded ? '320px' : '40px'};
-        }
-
-        .panel-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 8px;
-          height: 40px;
-        }
-
-        .tabs {
-          display: flex;
-          gap: 8px;
-        }
-
-        .tab {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 4px 8px;
-          border-radius: 4px;
-          color: var(--text-secondary);
-          background: none;
-          border: none;
-          cursor: pointer;
-        }
-
-        .tab:hover {
-          background-color: var(--background-tertiary);
-        }
-
-        .tab.active {
-          color: var(--text-primary);
-          background-color: var(--background-tertiary);
-        }
-
-        .panel-content {
-          height: calc(100% - 40px);
-          overflow-y: auto;
-          padding: 8px;
-        }
-
-        .logs {
-          font-family: monospace;
-          font-size: 12px;
-          line-height: 1.4;
-        }
-
-        .log-line {
-          padding: 2px 0;
-          color: var(--text-secondary);
-        }
-
-        .history {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .history-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          padding: 8px;
-          border-radius: 4px;
-          background-color: var(--background-tertiary);
-        }
-
-        .status-badge {
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 500;
-          text-transform: uppercase;
-        }
-
-        .status-badge.completed {
-          background-color: var(--accent-success);
-          color: white;
-        }
-
-        .status-badge.running {
-          background-color: var(--accent-primary);
-          color: white;
-        }
-
-        .status-badge.error {
-          background-color: var(--accent-error);
-          color: white;
-        }
-
-        .history-details {
-          flex: 1;
-        }
-
-        .history-time {
-          font-size: 12px;
-          color: var(--text-secondary);
-        }
-
-        .history-error {
-          margin-top: 4px;
-          font-size: 12px;
-          color: var(--accent-error);
-        }
-
-        .preview {
-          font-family: monospace;
-          font-size: 12px;
-        }
-
-        .results-json {
-          padding: 8px;
-          background-color: var(--background-tertiary);
-          border-radius: 4px;
-          overflow-x: auto;
-          color: var(--text-secondary);
-        }
-      `}</style>
     </div>
   );
 };

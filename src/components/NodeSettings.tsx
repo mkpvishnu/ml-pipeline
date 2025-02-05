@@ -14,6 +14,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import AddIcon from '@mui/icons-material/Add';
 import Grid from '@mui/material/Grid2';
+import { exists } from 'fs';
 
 interface NodeSettingsProps {
   nodeId: string;
@@ -75,7 +76,6 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
   // }, [nodeId]);
 
   useEffect(() => {
-    
     const fetchModule = async () => {
       setIsLoading(true);
       setError(null);
@@ -88,11 +88,6 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       }).then(response => response.json())
       .then(data => {
         console.log('Success:', data);
-        data = {
-          ...data,
-          "scope": "account",
-          "type": "custom",
-        }
         setModule(data);
         setUpdatedModule(data);
         setName(data.name);
@@ -118,25 +113,32 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     // module.user_config
     const config = userConfig[idx];
     const {id, type, title, description, options, watchOn, dependentOn, sourceType} = field;
-    let parentNodes = [];
+    let parentNodeEdges = [];
     let sourceOptions = [];
     // console.log({field, idx, watchOn, dependentOn, module, userConfig, config, sourceType, edges});
+    // console.log({ nodes, edges });
     
+
     if (sourceType) {
-      parentNodes = edges?.filter(ed => ed.target === nodeId);
+      parentNodeEdges = edges?.filter(ed => ed.target === nodeId);
       // console.log({ nodeId, sourceType, edges, parentNodes });
 
-      parentNodes.forEach(p => {
+      parentNodeEdges.forEach(p => {
         const source = p.source;
         const selectedModule = nodes.find(n => n.id === source)
-        // console.log({ nodes, source, selectedModule });
-        if (selectedModule.data.moduleData?.output_schema[sourceType]) {
-          sourceOptions = [...sourceOptions, ...selectedModule.data.moduleData.output_schema[sourceType]]
+        const sourceName = nodes.find(n => n.id === source)
+        // console.log({ nodes, source, selectedModule, sourceName });
+        if (selectedModule.data.moduleData?.state === 'PUBLISHED' && selectedModule.data.moduleData?.output_schema[sourceType]) {
+        // if (selectedModule.data.moduleData?.output_schema[sourceType]) {
+          // before setting sourceType, iterate and prefix the module id in the label
+          const updatedOptions = selectedModule.data.moduleData.output_schema[sourceType].map(s => ({ ...s, id: `${source}.${s.id}`, name: `${sourceName.data.moduleData.name} - ${s.name}`}))
+          sourceOptions = [...sourceOptions, ...updatedOptions]
         }
       })
     }
 
     const handleChange = (value) => {
+      
       setUserConfig(prevConfig =>
         prevConfig.map((conf, i) =>
           i === idx
@@ -218,6 +220,8 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
         );
       case 'dropdown':
         const updatedOptions = sourceType ? sourceOptions : options;
+        // const updatedValue = sourceType ? config[id] && config[id].split('-')[1].trim() : config[id];
+        
         return (
           <FormControl fullWidth size="small">
             <InputLabel id="demo-simple-select-label">{title}</InputLabel>

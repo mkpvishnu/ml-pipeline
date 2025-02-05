@@ -35,7 +35,7 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode
 };
 
-const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue}) => {
+const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, setRun}) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<{ id: string; moduleId: string } | null>(null);
@@ -101,7 +101,12 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue}) =>
         id: moduleId,
         position,
         data: {
-          label: moduleData.name,
+          label: (
+            <div className='node-parent'>
+              <p>{moduleData.name}</p>
+              <p className='node-state'>DRAFT</p>
+            </div>
+          ),
           moduleId,
           // name: moduleData.name,
           moduleData,
@@ -131,14 +136,30 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue}) =>
         'account-id': 2,
         accept: 'application/json',
       },
-      body: JSON.stringify(node)
+      body: JSON.stringify({
+        ...node,
+        "scope": "account",
+        "type": "custom"
+      })
     }).then(response => response.json())
     .then(data => {
       console.log('Success:', data);
       // once save, replace the above response id to sync the selected node
       const updatedNodes = nodes.map((n) => {
         if (n.id === data.parent_module_id) {
-          return {...n, id: String(data.id), data: { ...data, label: data.name }};
+          return {
+            ...n, 
+            id: String(data.id), 
+            data: { 
+              ...data, 
+              label:  (
+                <div className='node-parent'>
+                  <p>{data.name}</p>
+                  <p className='node-state published'>{data.state || 'PUBLISHED'}</p>
+                </div>
+              ) 
+            }
+          };
         }
         return n;
       });
@@ -198,14 +219,23 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue}) =>
     setEdges([]);
     setSelectedNode(null);
     setTabValue(0);
+    setRun(false);
   }
 
   const onResetCanvas = () => {
     // fetch canvas to populate nodes and edges
     console.log('fetch canvas to populate nodes and edges', {canvasId});
+    setRun(false);
+  }
+
+  const onRunCanvas = () => {
+    setRun(true);
   }
 
   // console.log({ nodes, selectedNode });
+
+  // if type default, DRAFT state
+  // if type custom or not default, PUBLISHED state
   
   return (
     <>
@@ -215,6 +245,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue}) =>
             {canvasId ? <Button size="small" variant="outlined" onClick={onNewCanvas}>New</Button> : null}
             {canvasId ? <Button size="small" variant="outlined" onClick={onResetCanvas}>Reset</Button> : null}
             <Button size="small" variant="contained" onClick={onSaveCanvas}>Save</Button>
+            {canvasId ? <Button size="small" variant="outlined" onClick={onRunCanvas} color="success">Run</Button> : null}
           </Grid>
         </Box>
       </div>

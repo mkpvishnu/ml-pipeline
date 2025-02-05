@@ -248,7 +248,7 @@ export const mockGroups: Group[] = [
             },
             {
               "id": "suma 4",
-              "name": "suma 4"
+              "name": "suma 4 name"
             }
           ],
           "array": [
@@ -284,7 +284,7 @@ export const mockGroups: Group[] = [
         },
         "user_config": [
           {
-            "modelVersion": ""
+            "modelVersion": "suma 3"
           }
         ]
       }

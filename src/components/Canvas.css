@@ -127,3 +127,18 @@
   right: 12px;
   top: 8px;
 }
+
+.node-state {
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  font-size: 6px;
+  background-color: #1976d2;
+  border-radius: 4px;
+  color: #fff;
+  padding: 2px;
+}
+
+.node-state.published {
+  background-color: rgb(46, 125, 50);
+}

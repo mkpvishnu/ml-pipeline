@@ -67,11 +67,6 @@ body {
   color: var(--text-secondary);
 }
 
-.btn-icon:hover {
-  color: var(--text-primary);
-  background-color: var(--background-tertiary);
-}
-
 .btn-primary {
   background-color: var(--accent-primary);
   color: var(--text-primary);
