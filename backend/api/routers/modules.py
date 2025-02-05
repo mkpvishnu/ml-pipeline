@@ -192,7 +192,7 @@ async def run_module(
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
-                f"{settings.EXTERNAL_SERVICE_URL}/execute",
+                f"{settings.freshflow}/execute",
                 json={
                     "run_id": run.id,
                     "module_id": module_id,

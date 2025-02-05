@@ -15,6 +15,7 @@ class Group(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
+    icon_url = Column(String(1000))
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     status = Column(Integer, nullable=False, default=1)  # 1: active, 0: deleted
     deleted_at = Column(DateTime)

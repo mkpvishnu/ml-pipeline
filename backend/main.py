@@ -126,7 +126,7 @@ async def health_check():
 @app.on_event("startup")
 async def startup():
     logger.info("Starting application...")
-    logger.info(f"Server running on http://0.0.0.0:8000")
+    logger.info(f"Server running on http://0.0.0.0:6000")
     logger.info(f"Database host: {settings.DB_HOST}")
     logger.info(f"Database port: {settings.DB_PORT}")
 
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "backend.main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=settings.debug,
+        port=5000,
+        reload=settings.DEBUG,
         workers=1
     )

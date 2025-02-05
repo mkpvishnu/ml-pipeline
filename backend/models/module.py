@@ -18,17 +18,18 @@ class Module(Base):
     description = Column(String(1000))
     identifier = Column(String(255), nullable=False, unique=True)
     scope = Column(String(50), nullable=False, default="account")  # global or account
+    icon_url = Column(String(1000))
     group_id = Column(BigInteger, ForeignKey("groups.id"), nullable=False)
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     parent_module_id = Column(BigInteger, ForeignKey("modules.id"))
     code = Column(Text)
-    config_schema = Column(JSON, default={})
-    user_config = Column(JSON, default=[])
+    config_schema = Column(JSON, default=dict)
+    user_config = Column(JSON, default=list)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     account = relationship("Account", back_populates="modules")
     group = relationship("Group", back_populates="modules")
-    parent_module = relationship("Module", remote_side=[id], backref="child_modules") 
+    parent_module = relationship("Module", remote_side=[id], backref="child_modules")
     runs = relationship("Run", back_populates="module")

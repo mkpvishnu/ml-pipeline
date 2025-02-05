@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     DB_ECHO: bool = os.getenv("DB_ECHO", "False").lower() == "true"
 
     # External Service Settings
-    EXTERNAL_SERVICE_URL: Optional[str] = os.getenv("EXTERNAL_SERVICE_URL")
+    freshflow: Optional[str] = os.getenv("freshflow")
 
     # CORS Settings
     CORS_ORIGINS: list = ["*"]  # In production, replace with actual origins

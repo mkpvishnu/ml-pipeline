@@ -1,6 +1,6 @@
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 from .base import BaseSchema
 from .module import ModuleResponse
@@ -9,6 +9,7 @@ class GroupBase(BaseModel):
     """Base Group Schema"""
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
+    icon_url: Optional[HttpUrl] = Field(None, description="URL to the group's icon")
 
     class Config:
         from_attributes = True

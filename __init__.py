@@ -15,4 +15,4 @@ DB_POOL_TIMEOUT=30
 DB_ECHO=False
 
 # External Service Settings
-EXTERNAL_SERVICE_URL=http://localhost:8001 
+freshflow=http://localhost:8001 
