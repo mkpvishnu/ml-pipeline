@@ -35,10 +35,7 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode
 };
 
-const CanvasFlow: React.FC = ({canvasId, setCanvasId}) => {
-  // console.log({ canvasId, setCanvasId });
-  
-  // const { currentCanvas, updateCanvas } = useStore();
+const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue}) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<{ id: string; moduleId: string } | null>(null);
@@ -47,16 +44,34 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId}) => {
   const { setShouldRerender } = useApiRender();
 
   useEffect(() => {
-    setNodes([]);
+    if (!canvasId) {
+      setNodes([]);
       setEdges([]);
       setSelectedNode(null);
-    if (canvasId) {
-      // fetch canvas to populate nodes and edges
-      console.log('fetch canvas to populate nodes and edges');
+    } else {
+      fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'account-id': 2,
+          accept: 'application/json',
+        },
+      }).then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        setCanvasId(data.id);
+        setNodes(data.module_config.nodes.map(n => ({...n, selected: false}) ));
+        setEdges(data.module_config.edges);
+        setSelectedNode(null);
+        setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
+        // On Canvas  save, create the canvas. Move to Canvas tab.
+        setTabValue(0);
+      }).catch((error) => {
+        console.error('Error:', error);
+      });
     }
   }, [canvasId]);
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setViewport } = useReactFlow();
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -144,11 +159,37 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId}) => {
   }
 
   const onSaveCanvas = () => {
-    console.log({ nodes, edges });
-    // On Canvas  save, create the canvas. Move to Canvas tab.
-    // On clicking of it, it should show the nodes with their configuration.
-    // Existing module config can be updated.
-    // To drag new module, click on module tab to drop the modules on existing canvas
+    const randomTwoDigit = () => Math.floor(10 + Math.random() * 90);
+    const payload = {
+      name: `Canvas ${randomTwoDigit()}`,
+      description: '',
+      module_config: {nodes, edges}
+    }
+    console.log({ canvasId, payload });
+    fetch(`https://freddy-ml-pipeline-test.cxbu.staging.freddyproject.com/api/v1/canvas/${canvasId || ''}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'account-id': 2,
+        accept: 'application/json',
+      },
+      body: JSON.stringify(payload)
+    }).then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      setCanvasId(data.id);
+      setNodes(data.module_config.nodes.map(n => ({...n, selected: false}) ));
+      setEdges(data.module_config.edges);
+      setSelectedNode(null);
+      setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
+      // On Canvas  save, create the canvas. Move to Canvas tab.
+      setTabValue(1);
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
+    // On clicking of it, it should show the nodes with their configuration. - YET TO PICK
+    // Existing module config can be updated. - DONE
+    // To drag new module, click on module tab to drop the modules on existing canvas - DONE
   }
 
   const onNewCanvas = () => {
@@ -156,6 +197,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId}) => {
     setNodes([]);
     setEdges([]);
     setSelectedNode(null);
+    setTabValue(0);
   }
 
   const onResetCanvas = () => {

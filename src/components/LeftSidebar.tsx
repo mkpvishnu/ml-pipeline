@@ -16,6 +16,7 @@ import EditDrawer from './EditDrawer';
 import './LeftSidebar.css';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import Box from '@mui/material/Box';
 import { useApiRender } from '../context/ApiRenderContext';
 
 function a11yProps(index) {
@@ -25,7 +26,7 @@ function a11yProps(index) {
   };
 }
 
-const LeftSidebar: React.FC = ({ canvasId, setCanvasId }) => {
+const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue }) => {
   const { groups, setGroups, updateGroup, deleteGroup, deleteModule } = useStore();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -36,7 +37,6 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId }) => {
   const [selectedModule, setSelectedModule] = useState<{ id: string; groupId: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [value, setValue] = useState(0);
 
   const { shouldRerender } = useApiRender();
 
@@ -50,7 +50,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId }) => {
         },
       }).then(response => response.json())
       .then(data => {
-        console.log('Success:', data);
+        // console.log('Success:', data);
         setGroups(data)
         // Expand the first group by default if there are groups
         if (data.length > 0) {
@@ -66,8 +66,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId }) => {
     fetchGroupsWithModules();
   }, [shouldRerender]);
 
-  console.log({ groups, expandedGroups });
-  
+  // console.log({ groups, expandedGroups });
 
   const toggleGroup = (groupId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -179,7 +178,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId }) => {
   }
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
+    setTabValue(newValue);
     // API to fetch releavant tab items eg: list of modules / list of canvas
     // templates will vary among the tabs
     // right side we should able to populate the selected tab details to load the complete node details
@@ -187,16 +186,18 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId }) => {
 
   const onCanvasClick = (value) => {
     setCanvasId(value);
-    setValue(0);
+    setTabValue(0);
   }
 
   return (
     <div className="left-sidebar">
-      <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-        <Tab label="Modules" {...a11yProps(0)} />
-        <Tab label="Canvas" {...a11yProps(1)} />
-      </Tabs>
-      {value === 0 ? (
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabValue} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Modules" {...a11yProps(0)} />
+          <Tab label="Canvas" {...a11yProps(1)} />
+        </Tabs>
+      </Box>
+      {tabValue === 0 ? (
         <div className="groups-container">
           {groups && groups.length > 0 ? (
             groups.map(group => (
@@ -282,9 +283,9 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId }) => {
         </div>
       ): (
         <div className="groups-container">
-            <button onClick={() => onCanvasClick(1)}>Canvas 1</button>
-            <button onClick={() => onCanvasClick(2)}>Canvas 2</button>
-            <button onClick={() => onCanvasClick(3)}>Canvas 3</button>
+          <button className='canvas-btn' onClick={() => onCanvasClick(1)}>Canvas 1</button>
+          <button className='canvas-btn' onClick={() => onCanvasClick(2)}>Canvas 2</button>
+          <button className='canvas-btn' onClick={() => onCanvasClick(3)}>Canvas 3</button>
         </div>
       )}
 

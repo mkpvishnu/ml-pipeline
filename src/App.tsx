@@ -22,15 +22,16 @@ const App: React.FC = () => {
 
   // provide a reset/clear button to clear the canvas
   const [canvasId, setCanvasId] =  useState('');
+  const [tabValue, setTabValue] = useState(0);
 
   return (
     <ApiRenderProvider>
       <div className="app-container">
         <TopBar />
         <div className="main-content">
-          <LeftSidebar canvasId={canvasId} setCanvasId={setCanvasId} />
+          <LeftSidebar canvasId={canvasId} setCanvasId={setCanvasId} tabValue={tabValue} setTabValue={setTabValue} />
           <div className="canvas-container">
-              <Canvas canvasId={canvasId} setCanvasId={setCanvasId} />
+              <Canvas canvasId={canvasId} setCanvasId={setCanvasId} tabValue={tabValue} setTabValue={setTabValue} />
           </div>
           {isSettingsOpen && selectedModuleId && (
             <RightDrawer 

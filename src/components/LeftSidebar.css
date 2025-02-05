@@ -236,3 +236,23 @@
 .btn-secondary:hover {
   background-color: #444;
 } 
+
+.canvas-btn {
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  display: flex;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: rgb(48, 55, 65);
+  width: 100%;
+  line-height: 21px;
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.canvas-btn:hover {
+  color: hsl(200, 10%, 4%);
+  background-color: hsl(215, 15%, 97%);
+}
