@@ -22,7 +22,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
     if (run && canvasId) {
       const fetchStream = async () => {
         try {
-          const response = await fetch(`${DOMAIN}/api/v1/canvas/${canvasId}/logs`); // Replace with your URL
+          const response = await fetch(`${DOMAIN}/api/v1/runs/${run}`); // Replace with your URL
   
           // Check if the response is successful
           if (!response.ok) {
@@ -65,44 +65,27 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
     switch (activeBottomTab) {
       case 'logs':
         return (
-          <div id="output">{content}</div>
+          <div id="output">Hello how are u {content}</div>
         );
 
       case 'history':
         return (
           <div className="history">
-            {Object.values(runs).map((run) => (
-              <div key={run.id} className="history-item">
-                <div className={`status-badge ${run.status.toLowerCase()}`}>
-                  {run.status}
-                </div>
-                <div className="history-details">
-                  <div className="history-time">
-                    {new Date(run.started_at).toLocaleString()}
-                  </div>
-                  {run.error && (
-                    <div className="history-error">
-                      {run.error.message}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+            Hello how are u
           </div>
         );
-
-      case 'preview':
-        return (
-          <div className="preview">
-            {Object.values(runs).map((run) => (
-              run.results && (
-                <pre key={run.id} className="results-json">
-                  {JSON.stringify(run.results, null, 2)}
-                </pre>
-              )
-            ))}
-          </div>
-        );
+      // case 'preview':
+      //   return (
+      //     <div className="preview">
+      //       {Object.values(runs).map((run) => (
+      //         run.results && (
+      //           <pre key={run.id} className="results-json">
+      //             {JSON.stringify(run.results, null, 2)}
+      //           </pre>
+      //         )
+      //       ))}
+      //     </div>
+      //   );
 
       default:
         return null;
@@ -110,7 +93,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
   };
 
   const fetchHistory = () => {
-    fetch(`${DOMAIN}/api/v1/canvas/${canvasId}/history`, {
+    fetch(`${DOMAIN}api/v1/runs/${run}/status`, {
       headers: {
         'Content-Type': 'application/json',
         'account-id': ACCOUNT_ID,

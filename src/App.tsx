@@ -23,7 +23,7 @@ const App: React.FC = () => {
   // provide a reset/clear button to clear the canvas
   const [canvasId, setCanvasId] =  useState('');
   const [tabValue, setTabValue] = useState(0);
-  const [run, setRun] = useState(false);
+  const [run, setRun] = useState('');
 
   const props = {
     canvasId,

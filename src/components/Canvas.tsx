@@ -148,7 +148,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       console.log('Success:', data);
       // once save, replace the above response id to sync the selected node
       const updatedNodes = nodes.map((n) => {
-        if (n.id == data.parent_module_id) {
+        if (IS_CUSTOM || (n.id == data.parent_module_id)) {
           return {
             ...n, 
             id: String(data.id), 
@@ -188,7 +188,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       description: '',
       module_config: {nodes, edges}
     }
-    console.log({ canvasId, payload });
+    // console.log({ canvasId, payload });
     fetch(`${DOMAIN}/api/v1/canvas/${canvasId || ''}`, {
       method: 'POST',
       headers: {
@@ -221,17 +221,36 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
     setEdges([]);
     setSelectedNode(null);
     setTabValue(0);
-    setRun(false);
+    setRun('');
   }
 
   const onResetCanvas = () => {
     // fetch canvas to populate nodes and edges
     console.log('fetch canvas to populate nodes and edges', {canvasId});
-    setRun(false);
+    setRun('');
   }
 
   const onRunCanvas = () => {
-    setRun(true);
+    fetch(`${DOMAIN}/api/v1/runs/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'account-id': ACCOUNT_ID,
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        "status": "REQUESTED",
+        "results": {},
+        "error": {},
+        "canvas_id": canvasId,
+        "module_id": 0
+      })
+    }).then(response => response.json())
+    .then(data => {
+      setRun(data.id);
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
   }
 
   // console.log({ nodes, selectedNode });

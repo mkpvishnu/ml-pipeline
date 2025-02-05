@@ -208,7 +208,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
                   onClick={(e) => toggleGroup(group.id, e)}
                 >
                   <div className="group-header-content">
-                    <FiFolder className="icon" />
+                    <img src={group.icon_url} height="16" width="16" />
                     <span className="group-name">{group.name}</span>
                   </div>
                   <div className="group-actions">
@@ -239,7 +239,8 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
                       onDragStart={(e) => onDragStart(e, group.id, module)}
                     >
                       <div className="module-content">
-                        <FiBox className="icon" />
+                        {/* <FiBox className="icon" /> */}
+                        <img src={module.icon_url} height="16" width="16" />
                         <span className="module-name">{module.name}</span>
                       </div>
                       <div className="module-actions">
