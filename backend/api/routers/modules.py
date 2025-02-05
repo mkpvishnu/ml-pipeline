@@ -10,7 +10,8 @@ from backend.crud import module as crud_module
 from backend.crud import run as crud_run
 from backend.schemas.module import (
     ModuleCreate, ModuleUpdate, ModuleResponse,
-    ModuleCodeUpdate, ModuleConfigSchemaUpdate, ModuleUserConfigUpdate
+    ModuleCodeUpdate, ModuleConfigSchemaUpdate, ModuleUserConfigUpdate,
+    CustomModuleCreate, ModuleType, ModuleStatus
 )
 from backend.core.config import get_settings
 
@@ -233,5 +234,56 @@ async def delete_module(
     try:
         await crud_module.delete(db=db, db_obj=module)
         return {"status": "success"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/custom", response_model=ModuleResponse)
+async def create_custom_module(
+    *,
+    db: AsyncSession = Depends(get_db),
+    module_in: CustomModuleCreate,
+    group_id: Annotated[str, Header()],
+    account_id: Annotated[str, Header()],
+    module_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
+    __: str = Depends(validate_group)
+):
+    """Create a custom module based on an existing default module"""
+    # First, get the parent module
+    parent_module = await crud_module.get(db, id=module_id)
+    if not parent_module:
+        raise HTTPException(
+            status_code=404,
+            detail="Parent module not found"
+        )
+    
+    # Verify parent module is a default module
+    if parent_module.type != ModuleType.DEFAULT:
+        raise HTTPException(
+            status_code=400,
+            detail="Custom modules can only be created from default modules"
+        )
+    
+    # Create custom module object
+    module_data = {
+        "name": module_in.name,
+        "description": module_in.description,
+        "identifier": parent_module.identifier, # Inherit from parent
+        "type": ModuleType.CUSTOM,
+        "status": ModuleStatus.PUBLISHED,  # Custom modules also start as draft
+        "parent_module_id": module_id,
+        "config_schema": parent_module.config_schema,  # Inherit from parent
+        "output_schema": parent_module.output_schema,  # Inherit from parent
+        "user_config": parent_module.user_config,  # Copy user_config from parent
+        "code": parent_module.code  # Inherit from parent
+    }
+    
+    try:
+        return await crud_module.create(
+            db=db,
+            obj_in=module_data,
+            account_id=account_id,
+            group_id=group_id
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) 
