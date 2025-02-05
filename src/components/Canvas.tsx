@@ -65,15 +65,15 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
           ...n, 
           data: {
             ...n.data, 
-            label: <div className='node-parent'>
-            {n.data.label.props.children.map((c => (
-              <>
-                {c.props.className ? <p className={`node-state ${c.props.children}`}>{c.props.children}</p> : <p>{c.props.children}</p>}
-              </>
-            )))}
-          </div>
+            label: (
+              <div className='node-parent'>
+                <p>{data.name}</p>
+                <p className='node-state published'>{data.status || 'PUBLISHED'}</p>
+              </div>
+            )
           }, 
-          selected: false}) ));
+          selected: false
+        })));
         setSelectedNode(null);
         setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
         // On Canvas  save, create the canvas. Move to Canvas tab.
@@ -166,10 +166,10 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
             id: String(data.id),
             data: { 
               ...data, 
-              label:  (
+              label: (
                 <div className='node-parent'>
                   <p>{data.name}</p>
-                  <p className='node-state published'>{data.state || 'PUBLISHED'}</p>
+                  <p className='node-state published'>{data.status || 'PUBLISHED'}</p>
                 </div>
               ) 
             }
@@ -182,7 +182,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
               label:  (
                 <div className='node-parent'>
                   <p>{data.name}</p>
-                  <p className='node-state published'>{data.state || 'PUBLISHED'}</p>
+                  <p className='node-state published'>{data.status || 'PUBLISHED'}</p>
                 </div>
               ) 
             }
@@ -209,9 +209,12 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
   const onSaveCanvas = () => {
     const randomTwoDigit = () => Math.floor(10 + Math.random() * 90);
     const payload = {
-      name: canvasId ? '' : `Canvas ${randomTwoDigit()}`,
+      name: `Canvas ${randomTwoDigit()}`,
       description: '',
-      module_config: {nodes, edges}
+      module_config: {
+        nodes: nodes.map(n => ({...n, data: {...n.data, label: n.data.moduleData.name }})), 
+        edges
+      }
     }
     // console.log({ canvasId, payload });
     fetch(`${DOMAIN}/api/v1/canvas/${canvasId || ''}`, {
@@ -232,11 +235,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
         data: {
           ...n.data, 
           label: <div className='node-parent'>
-            {n.data.label.props.children.map((c => (
-              <>
-                {c.props.className ? <p className={`node-state ${c.props.children}`}>{c.props.children}</p> : <p>{c.props.children}</p>}
-              </>
-            )))}
+            
           </div>
         }, 
         selected: false
