@@ -105,7 +105,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
           label: (
             <div className='node-parent'>
               <p>{moduleData.name}</p>
-              <p className='node-state'>DRAFT</p>
+              <p className={`node-state ${moduleData.status}`}>{moduleData.status}</p>
             </div>
           ),
           moduleId,
@@ -148,10 +148,10 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       console.log('Success:', data);
       // once save, replace the above response id to sync the selected node
       const updatedNodes = nodes.map((n) => {
-        if (IS_CUSTOM || (n.id == data.parent_module_id)) {
+        if (!IS_CUSTOM && (n.id == data.parent_module_id)) {
           return {
             ...n, 
-            id: String(data.id), 
+            id: String(data.id),
             data: { 
               ...data, 
               label:  (
@@ -162,6 +162,19 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
               ) 
             }
           };
+        } else if (IS_CUSTOM && (n.id == data.id)) {
+          return { 
+            ...n,
+            data: { 
+              ...data, 
+              label:  (
+                <div className='node-parent'>
+                  <p>{data.name}</p>
+                  <p className='node-state published'>{data.state || 'PUBLISHED'}</p>
+                </div>
+              ) 
+            }
+          }
         }
         return n;
       });

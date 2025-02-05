@@ -90,16 +90,16 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
 
   const onDragStart = (event: React.DragEvent, group_id, module: Module) => {
     try {
-      const moduleData = {
-        id: module.id,
-        name: module.name,
-        description: module.description,
-        config_schema: module.config_schema,
-        user_config: module.user_config,
-        output_schema: module.output_schema,
-      };
+      // const moduleData = {
+      //   id: module.id,
+      //   name: module.name,
+      //   description: module.description,
+      //   config_schema: module.config_schema,
+      //   user_config: module.user_config,
+      //   output_schema: module.output_schema,
+      // };
       event.dataTransfer.setData('moduleId', module.id);
-      event.dataTransfer.setData('moduleData', JSON.stringify(moduleData));
+      event.dataTransfer.setData('moduleData', JSON.stringify(module));
       event.dataTransfer.setData('groupId', JSON.stringify(group_id));
       event.dataTransfer.effectAllowed = 'move';
     } catch (err) {
