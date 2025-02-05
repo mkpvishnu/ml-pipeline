@@ -65,7 +65,8 @@ async def get_module(
     module_id: str,
     account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
+    
+    #__: str = Depends(validate_module(module_id, account_id))
 ):
     """Get specific module"""
     return await crud_module.get_by_account_and_id(
@@ -74,15 +75,15 @@ async def get_module(
         module_id=module_id
     )
 
-@router.patch("/{module_id}", response_model=ModuleResponse)
+@router.put("/{module_id}", response_model=ModuleResponse)
 async def update_module(
     *,
     db: AsyncSession = Depends(get_db),
     module_id: str,
     module_in: ModuleUpdate,
+    group_id: Annotated[str, Header()],
     account_id: Annotated[str, Header()],
     _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
 ):
     """Update module"""
     module = await crud_module.get_by_account_and_id(
@@ -274,8 +275,9 @@ async def create_custom_module(
         "parent_module_id": module_id,
         "config_schema": parent_module.config_schema,  # Inherit from parent
         "output_schema": parent_module.output_schema,  # Inherit from parent
-        "user_config": parent_module.user_config,  # Copy user_config from parent
-        "code": parent_module.code  # Inherit from parent
+        "user_config": module_in.user_config,  # Copy user_config from parent
+        "code": parent_module.code,  # Inherit from parent
+        "icon_url": parent_module.icon_url
     }
     
     try:

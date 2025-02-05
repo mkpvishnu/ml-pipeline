@@ -55,8 +55,7 @@ async def get_canvas(
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Get specific active canvas"""
     return await crud_canvas.get_by_account_and_id(
@@ -65,15 +64,14 @@ async def get_canvas(
         canvas_id=canvas_id
     )
 
-@router.patch("/{canvas_id}", response_model=CanvasResponse)
+@router.put("/{canvas_id}", response_model=CanvasResponse)
 async def update_canvas(
     *,
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
     canvas_in: CanvasUpdate,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Update canvas"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -94,8 +92,7 @@ async def update_canvas_name(
     canvas_id: str,
     name_update: CanvasNameUpdate,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Update canvas name"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -116,8 +113,7 @@ async def update_canvas_module_config(
     canvas_id: str,
     config_update: CanvasModuleConfigUpdate,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Update canvas module configuration"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -137,8 +133,7 @@ async def run_canvas(
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Run a canvas"""
     canvas = await crud_canvas.get_by_account_and_id(
@@ -186,8 +181,7 @@ async def delete_canvas(
     db: AsyncSession = Depends(get_db),
     canvas_id: str,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_canvas(canvas_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Soft delete canvas"""
     canvas = await crud_canvas.get_by_account_and_id(

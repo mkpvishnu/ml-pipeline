@@ -37,7 +37,7 @@ class ModuleCreate(ModuleBase):
     """Schema for creating a module"""
     parent_module_id: Optional[int] = None
 
-class CustomModuleCreate(BaseModel):
+class CustomModuleCreate(ModuleBase):
     """Schema for creating a custom module"""
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
