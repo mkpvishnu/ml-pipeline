@@ -231,7 +231,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
   }
 
   const onRunCanvas = () => {
-    fetch(`${DOMAIN}/api/v1/runs/`, {
+    fetch(`${DOMAIN}api/v1/canvas/${canvasId}/run`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
