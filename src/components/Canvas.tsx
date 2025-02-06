@@ -41,8 +41,11 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<{ id: string; moduleId: string } | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { setShouldRerender } = useApiRender();
+
+  const { screenToFlowPosition, fitView, setCenter } = useReactFlow();
 
   useEffect(() => {
     if (!canvasId) {
@@ -61,7 +64,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         console.log('Success:', data);
         // setCanvasId(data.id);
         setEdges(data.module_config.edges);
-        setNodes(data.module_config.nodes.map(n => ({
+        const updatedNodes = data.module_config.nodes.map(n => ({
           ...n, 
           data: {
             ...n.data, 
@@ -73,9 +76,18 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
             )
           }, 
           selected: false
-        })));
+        }))
+        setNodes(updatedNodes);
+        // console.log({ updatedNodes });
+        
         setSelectedNode(null);
-        setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
+        // if (updatedNodes.length > 0) {
+        //   const node = updatedNodes[0]; // Adjust this for multiple nodes
+        //   console.log({ node });
+          
+        //   setCenter(node.position.x, node.position.y, { zoom: 1.5 });
+        //   fitView({ padding: 0.2, duration: 5000 });
+        // }
         // On Canvas  save, create the canvas. Move to Canvas tab.
         setTabValue(0);
       }).catch((error) => {
@@ -115,8 +127,6 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
       );
     }
   }, [run, canvasId, history])
-
-  const { screenToFlowPosition, setViewport } = useReactFlow();
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -174,6 +184,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   const handleNodeSave = (node) => {
     // console.log({ node, nodes, edges });
     const IS_CUSTOM = node.type === 'custom';
+    setIsLoading(true);
     fetch(`${DOMAIN}/api/v1/modules/${IS_CUSTOM ? node.id : 'custom'}`, {
       method: IS_CUSTOM ? 'PUT' : 'POST',
       headers: {
@@ -235,10 +246,13 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
       // Left side bar updates under modules tab if its focussed
     }).catch((error) => {
       console.error('Error:', error);
+    }).finally(() => {
+      setIsLoading(false);
     });
   }
 
   const onSaveCanvas = () => {
+    setIsLoading(true);
     const randomTwoDigit = () => Math.floor(10 + Math.random() * 90);
     const payload = {
       name: `Canvas ${randomTwoDigit()}`,
@@ -279,11 +293,13 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
       })));
       setEdges(data.module_config.edges);
       setSelectedNode(null);
-      setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
+      // setViewport({ x: 400, y: 100, zoom: 1 }, { duration: 100 });
       // On Canvas  save, create the canvas. Move to Canvas tab.
       setTabValue(1);
     }).catch((error) => {
       console.error('Error:', error);
+    }).finally(() => {
+      setIsLoading(false)
     });
     // On clicking of it, it should show the nodes with their configuration. - YET TO PICK
     // Existing module config can be updated. - DONE
@@ -334,8 +350,8 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
           <Grid container spacing={1}>
             {canvasId ? <Button size="small" variant="outlined" onClick={onNewCanvas}>New</Button> : null}
             {canvasId ? <Button size="small" variant="outlined" onClick={onResetCanvas}>Reset</Button> : null}
-            <Button size="small" variant="contained" onClick={onSaveCanvas}>{canvasId ? 'Update' : 'Save'}</Button>
-            {canvasId ? <Button size="small" variant="outlined" onClick={onRunCanvas} color="success">Run</Button> : null}
+            <Button size="small" variant="contained" onClick={onSaveCanvas} loading={isLoading}>{canvasId ? 'Update' : 'Save'}</Button>
+            {canvasId ? <Button size="small" variant="outlined" onClick={onRunCanvas} disabled={isLoading} color="success">Run</Button> : null}
           </Grid>
         </Box>
       </div>
@@ -376,6 +392,8 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
             nodes={nodes}
             edges={edges}
             handleNodeSave={handleNodeSave}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
           />
         )}
     </div>

@@ -39,7 +39,8 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
   onClose,
   nodes,
   edges,
-  handleNodeSave
+  handleNodeSave,
+  isLoading: saveIsLoading
 }) => {
   
   const [isLoading, setIsLoading] = useState(true);
@@ -373,7 +374,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
 
       <div className="node-settings-footer">
         <Button variant="outlined" onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={onSave}>{module.type === 'custom' ? 'Update' : 'Save'}</Button>
+        <Button variant="contained" onClick={onSave} loading={saveIsLoading}>{module.type === 'custom' ? 'Update' : 'Save'}</Button>
       </div>
     </div>
   );
