@@ -89,7 +89,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           } else {
             setHistory((prevHistory) => [
               ...prevHistory,
-              ...Object.entries(data.modules).map(([key, value]) => `${key}: ${value.status}`),
+              ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message}: ${value.status}`),
             ]);
           }
         })

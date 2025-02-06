@@ -119,21 +119,20 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     let sourceOptions = [];
     // console.log({field, idx, watchOn, dependentOn, module, userConfig, config, sourceType, edges});
     // console.log({ nodes, edges });
-    
 
     if (sourceType) {
-      parentNodeEdges = edges?.filter(ed => ed.target === nodeId);
-      // console.log({ nodeId, sourceType, edges, parentNodes });
+      parentNodeEdges = edges?.filter(ed => ed.target === nodeId) || [];
+      // console.log({ nodeId, sourceType, edges, parentNodeEdges });
 
       parentNodeEdges.forEach(p => {
         const source = p.source;
         const selectedModule = nodes.find(n => n.id === source)
         const sourceName = nodes.find(n => n.id === source)
-        // console.log({ nodes, source, selectedModule, sourceName });
-        if (selectedModule.data.moduleData?.state === 'PUBLISHED' && selectedModule.data.moduleData?.output_schema[sourceType]) {
-        // if (selectedModule.data.moduleData?.output_schema[sourceType]) {
+        console.log({ nodes, parentNodeEdges, source, selectedModule, sourceName, sourceType });
+        if (selectedModule.data?.status === 'published' && selectedModule.data?.output_schema[sourceType]) {
+          // if (selectedModule.data.moduleData?.output_schema[sourceType]) {
           // before setting sourceType, iterate and prefix the module id in the label
-          const updatedOptions = selectedModule.data.moduleData.output_schema[sourceType].map(s => ({ ...s, id: `${source}.${s.id}`, name: `${sourceName.data.moduleData.name} - ${s.name}`}))
+          const updatedOptions = selectedModule.data.output_schema[sourceType].map(s => ({ ...s, id: `${source}.${s.id}`, name: `${sourceName.data.name} - ${s.name}`}))
           sourceOptions = [...sourceOptions, ...updatedOptions]
         }
       })
@@ -300,6 +299,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
 
   // console.log({ nodeId, node, module, userConfig });
   // console.log(module, name, description);
+  // console.log({ updatedModule });
 
   return (
     <div className="node-settings">

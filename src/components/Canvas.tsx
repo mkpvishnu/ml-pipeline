@@ -93,11 +93,26 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   // ]
 
   useEffect(() => {
-    if (run && canvasId) {
+    if (run && canvasId && history.length) {
       // get the history
       // preselect the node based on status and its name
       // show the state of all the nodes
-      // console.log({ nodes, history });
+      console.log({ nodes, history });
+      setNodes((prevItems) =>
+        prevItems.map((item) => ({
+          ...item, 
+          data: {
+            ...item.data,
+            label: (
+             <div className='node-parent'>
+               <p>{item.data?.name}</p>
+               <p className='node-state published'>{item.data.status}</p>
+               <p className='node-workflow-status'>{history.find(h => h.split('---->')[0].trim() === item.data.name)?.split(':')[1]}</p>
+             </div>
+            ) 
+         }
+        }))
+      );
     }
   }, [run, canvasId, history])
 
