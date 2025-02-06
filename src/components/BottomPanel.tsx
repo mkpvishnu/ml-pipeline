@@ -8,7 +8,7 @@ interface BottomPanelProps {
   expanded: boolean;
 }
 
-const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) => {
+const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, history, setHistory }) => {
   const { 
     activeBottomTab,
     setActiveBottomTab,
@@ -17,12 +17,15 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
   } = useStore();
 
   const [content, setContent] = useState(''); // State to hold the streamed content
+  
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     if (run && canvasId) {
       const fetchStream = async () => {
         try {
-          const response = await fetch(`${DOMAIN}/api/v1/stream/${run}/streaming`); // Replace with your URL
+          // const response = await fetch(`${DOMAIN}/api/v1/stream/${run}/stream`); // Replace with your URL
+          const response = await fetch(`https://freddy-ml-pipeline-freshflow.cxbu.staging.freddyproject.com/api/workflow/${run}/stream`); // Replace with your URL
   
           // Check if the response is successful
           if (!response.ok) {
@@ -61,17 +64,64 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
 
   // console.log({ expanded, run, canvasId });
 
+  let intervalId;
+
+  useEffect(() => {
+    const fetchHistory = () => {
+      // fetch(`${DOMAIN}api/v1/stream/${run}/status`, {
+      fetch(`https://freddy-ml-pipeline-freshflow.cxbu.staging.freddyproject.com/api/workflow/${run}/status`, {
+        headers: {
+          "Content-Type": "application/json",
+          "account-id": ACCOUNT_ID,
+          accept: "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setHistory([]);
+          console.log('fetch history data', { data });
+          Object.entries(data.modules).forEach(([key, value]) => {
+            console.log(`${key} ----- ${value.status}`);
+            setHistory((prevHistory) => [...prevHistory, `${key}: ${value.status}`]);
+          });
+
+          if (data.status === "COMPLETED") {
+            setIsCompleted(true);
+            clearInterval(intervalId);
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          setHistory((prevHistory) => [...prevHistory, "Error fetching data"]);
+        });
+    };
+
+    if (run && canvasId) {
+      intervalId = setInterval(fetchHistory, 5000);
+    }
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
+  }, [run, canvasId]);
+
   const renderContent = () => {
     switch (activeBottomTab) {
       case 'logs':
         return (
-          <div id="output">Hello how are u {content}</div>
+          <pre>
+            <div id="output">{content}</div>
+          </pre>
         );
 
       case 'history':
         return (
           <div className="history">
-            Hello how are u
+            <pre>
+              {history?.map((h, index) => (
+                <div key={index}>{h}</div>
+              ))}
+            </pre>
+          {isCompleted && <p>Process Completed ✅</p>}
           </div>
         );
       // case 'preview':
@@ -92,21 +142,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
     }
   };
 
-  const fetchHistory = () => {
-    fetch(`${DOMAIN}api/v1/stream/${run}/status`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'account-id': ACCOUNT_ID,
-        accept: 'application/json',
-      },
-    }).then(response => response.json())
-    .then(data => {
-      console.log('fetch history data', { data });
-    }).catch((error) => {
-      console.error('Error:', error);
-    });
-  }
-
   return (
     <div className={`bottom-panel ${expanded ? 'expanded' : ''}`}>
       <div className="panel-header">
@@ -122,7 +157,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId }) =>
             className={`tab ${activeBottomTab === 'history' ? 'active' : ''}`}
             onClick={() => {
               setActiveBottomTab('history')
-              fetchHistory()
             }}
           >
             <FiClock className="icon" />

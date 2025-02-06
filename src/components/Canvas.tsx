@@ -36,13 +36,23 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode
 };
 
-const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, setRun}) => {
+const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, setRun, history}) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<{ id: string; moduleId: string } | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
   const { setShouldRerender } = useApiRender();
+
+  console.log('history in canvas', { history });
+
+  // [
+  //   "vector_store: WAITING",
+  //   "s3_downloader: COMPLETED",
+  //   "document_processor: FAILED",
+  //   "embeddings_generator: WAITING",
+  //   "document_preprocessor: WAITING"
+  // ]
 
   useEffect(() => {
     if (!canvasId) {
@@ -67,8 +77,8 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
             ...n.data, 
             label: (
               <div className='node-parent'>
-                <p>{data.name}</p>
-                <p className='node-state published'>{data.status || 'PUBLISHED'}</p>
+                <p>{n.data.moduleData?.name || n.data.name}</p>
+                <p className='node-state published'>{n.data.moduleData?.status || n.data.status}</p>
               </div>
             )
           }, 
@@ -169,7 +179,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
               label: (
                 <div className='node-parent'>
                   <p>{data.name}</p>
-                  <p className='node-state published'>{data.status || 'PUBLISHED'}</p>
+                  <p className='node-state published'>{data.status}</p>
                 </div>
               ) 
             }
@@ -182,7 +192,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
               label:  (
                 <div className='node-parent'>
                   <p>{data.name}</p>
-                  <p className='node-state published'>{data.status || 'PUBLISHED'}</p>
+                  <p className='node-state published'>{data.status}</p>
                 </div>
               ) 
             }
@@ -212,7 +222,9 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       name: `Canvas ${randomTwoDigit()}`,
       description: '',
       module_config: {
-        nodes: nodes.map(n => ({...n, data: {...n.data, label: n.data.moduleData.name }})), 
+        // n.data.moduleData.name first time from default its not present for new drag/drop
+        // on click of canvas directly works for the below code (n.data.moduleData.name)
+        nodes: nodes.map(n => ({...n, data: {...n.data, label: n.data.moduleData?.name || n.data.name }})), 
         edges
       }
     }
@@ -234,9 +246,12 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
         ...n, 
         data: {
           ...n.data, 
-          label: <div className='node-parent'>
-            
-          </div>
+          label: (
+            <div className='node-parent'>
+              <p>{n.data.name}</p>
+              <p className='node-state published'>{n.data.status}</p>
+            </div>
+          )
         }, 
         selected: false
       })));
@@ -269,29 +284,29 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
   }
 
   const onRunCanvas = () => {
-    fetch(`${DOMAIN}api/v1/canvas/${canvasId}/run`, {
+    fetch(`${DOMAIN}/api/v1/runs`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'account-id': ACCOUNT_ID,
         accept: 'application/json',
+        // ACTUAL
+        // 'canvas-id': canvasId
+        // TESTING
+        'canvas-id': 1
       },
-      body: JSON.stringify({
-        "status": "REQUESTED",
-        "results": {},
-        "error": {},
-        "canvas_id": canvasId,
-        "module_id": 0
-      })
     }).then(response => response.json())
     .then(data => {
-      setRun(data.id);
+      // ACTUAL
+      // setRun(data.id);
+      // TESTING
+      setRun(data.workflow_id);
     }).catch((error) => {
       console.error('Error:', error);
     });
   }
 
-  // console.log({ nodes, edges, selectedNode });
+  console.log({ nodes, edges, selectedNode });
 
   return (
     <>
@@ -300,7 +315,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
           <Grid container spacing={1}>
             {canvasId ? <Button size="small" variant="outlined" onClick={onNewCanvas}>New</Button> : null}
             {canvasId ? <Button size="small" variant="outlined" onClick={onResetCanvas}>Reset</Button> : null}
-            <Button size="small" variant="contained" onClick={onSaveCanvas}>Save</Button>
+            <Button size="small" variant="contained" onClick={onSaveCanvas}>{canvasId ? 'Update' : 'Save'}</Button>
             {canvasId ? <Button size="small" variant="outlined" onClick={onRunCanvas} color="success">Run</Button> : null}
           </Grid>
         </Box>

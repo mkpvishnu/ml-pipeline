@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [canvasId, setCanvasId] =  useState('');
   const [tabValue, setTabValue] = useState(0);
   const [run, setRun] = useState('');
+  const [history, setHistory] = useState([]);
 
   const props = {
     canvasId,
@@ -31,7 +32,9 @@ const App: React.FC = () => {
     tabValue,
     setTabValue,
     run,
-    setRun
+    setRun,
+    history,
+    setHistory
   }
 
   return (
@@ -53,6 +56,8 @@ const App: React.FC = () => {
           expanded={isBottomPanelExpanded} 
           run={run}
           canvasId={canvasId}
+          history={history}
+          setHistory={setHistory}
         />
       </div>
     </ApiRenderProvider>
