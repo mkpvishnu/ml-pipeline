@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { FiChevronUp, FiChevronDown, FiClock, FiList } from 'react-icons/fi';
 import useStore from '../store';
 import './BottomPanel.css';
@@ -19,6 +19,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
   const [content, setContent] = useState(''); // State to hold the streamed content
   
   const [isCompleted, setIsCompleted] = useState(false);
+  const intervalRef = useRef(null); // Use ref to store interval ID
 
   useEffect(() => {
     if (run && canvasId) {
@@ -64,8 +65,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
 
   // console.log({ expanded, run, canvasId });
 
-  let intervalId;
-
   useEffect(() => {
     const fetchHistory = () => {
       // fetch(`${DOMAIN}api/v1/stream/${run}/status`, {
@@ -78,16 +77,20 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
       })
         .then((response) => response.json())
         .then((data) => {
+          // console.log('fetch history data', { data });
           setHistory([]);
-          console.log('fetch history data', { data });
-          Object.entries(data.modules).forEach(([key, value]) => {
-            console.log(`${key} ----- ${value.status}`);
-            setHistory((prevHistory) => [...prevHistory, `${key}: ${value.status}`]);
-          });
+          console.log(`WORKFLOW STATUS ----- ${data.status}`);
 
           if (data.status === "COMPLETED" || data.status === "FAILED") {
             setIsCompleted(true);
-            clearInterval(intervalId);
+            clearInterval(intervalRef.current); // Correctly clear interval
+            intervalRef.current = null; // Reset ref
+            console.log('cleared');
+          } else {
+            setHistory((prevHistory) => [
+              ...prevHistory,
+              ...Object.entries(data.modules).map(([key, value]) => `${key}: ${value.status}`),
+            ]);
           }
         })
         .catch((error) => {
@@ -96,12 +99,18 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
         });
     };
 
-    if (run && canvasId) {
-      intervalId = setInterval(fetchHistory, 1000);
+    if (run && canvasId && !intervalRef.current) {
+      intervalRef.current = setInterval(fetchHistory, 1000);
+      fetchHistory(); // Call immediately instead of waiting 1 second
     }
 
     // Cleanup interval on unmount
-    return () => clearInterval(intervalId);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
   }, [run, canvasId]);
 
   const renderContent = () => {

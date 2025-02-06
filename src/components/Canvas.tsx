@@ -36,23 +36,13 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode
 };
 
-const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, setRun, history}) => {
+const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run, setRun, history}) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<{ id: string; moduleId: string } | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
   const { setShouldRerender } = useApiRender();
-
-  console.log('history in canvas', { history });
-
-  // [
-  //   "vector_store: WAITING",
-  //   "s3_downloader: COMPLETED",
-  //   "document_processor: FAILED",
-  //   "embeddings_generator: WAITING",
-  //   "document_preprocessor: WAITING"
-  // ]
 
   useEffect(() => {
     if (!canvasId) {
@@ -93,6 +83,23 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
       });
     }
   }, [canvasId]);
+
+  // [
+  //   "vector_store: WAITING",
+  //   "s3_downloader: COMPLETED",
+  //   "document_processor: FAILED",
+  //   "embeddings_generator: WAITING",
+  //   "document_preprocessor: WAITING"
+  // ]
+
+  useEffect(() => {
+    if (run && canvasId) {
+      // get the history
+      // preselect the node based on status and its name
+      // show the state of all the nodes
+      // console.log({ nodes, history });
+    }
+  }, [run, canvasId, history])
 
   const { screenToFlowPosition, setViewport } = useReactFlow();
 
@@ -306,7 +313,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, set
     });
   }
 
-  console.log({ nodes, edges, selectedNode });
+  // console.log({ nodes, edges, selectedNode });
 
   return (
     <>
