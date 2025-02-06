@@ -25,6 +25,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 
 function a11yProps(index) {
   return {
@@ -68,6 +70,8 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
       console.error('Error fetching groups:', error);
       setError('Failed to load groups');
       setGroups([]);
+    }).finally(() => {
+      setIsLoading(false);
     });
   };
 
@@ -87,9 +91,12 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
         console.error('Error fetching canvas:', error);
         setError('Failed to load canvas');
         setListCanvas([]);
+      }).finally(() => {
+        setIsLoading(false);
       });
     }
 
+    setIsLoading(true);
     if (tabValue === 0) {
       fetchGroupsWithModules();
     } else {
@@ -200,32 +207,32 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
       .finally(() => setOpen(null))
   }
 
-  if (isLoading) {
-    return (
-      <div className="left-sidebar">
-        <div className="loading-state">
-          <FiLoader className="icon spin" />
-          <span>Loading groups...</span>
-        </div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="left-sidebar">
+  //       <div className="loading-state">
+  //         <FiLoader className="icon spin" />
+  //         <span>Loading groups...</span>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  if (error) {
-    return (
-      <div className="left-sidebar">
-        <div className="error-state">
-          <span>{error}</span>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="left-sidebar">
+  //       <div className="error-state">
+  //         <span>{error}</span>
+  //         <button 
+  //           className="btn btn-secondary" 
+  //           onClick={() => window.location.reload()}
+  //         >
+  //           Retry
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const handleChange = (event, newValue) => {
     setTabValue(newValue);
@@ -239,15 +246,20 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
     setTabValue(0);
   }
 
-  return (
-    <div className="left-sidebar">
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleChange} aria-label="basic tabs example">
-          <Tab label="Modules" {...a11yProps(0)} />
-          <Tab label="Canvas" {...a11yProps(1)} />
-        </Tabs>
-      </Box>
-      {tabValue === 0 ? (
+  const renderTabContent = () => {
+    if(isLoading) {
+      return (
+        <div className='groups-container'>
+          <Stack spacing={1}>
+            <Skeleton width="40%" animation="wave"/>
+            <Skeleton width="60%" animation="wave"/>
+            <Skeleton variant="text" animation="wave"/>
+          </Stack>
+        </div>
+      )
+    }
+    if (tabValue == 0) {
+      return (
         <div className="groups-container">
           {groups && groups.length > 0 ? (
             groups.map(group => (
@@ -334,11 +346,24 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
             </div>
           )}
         </div>
-      ): (
-        <div className="groups-container">
-          {listCanvas.map(l => <button key={l.id} className='canvas-btn' onClick={() => onCanvasClick(l.id)}>{l.name}</button> )}
-        </div>
-      )}
+      )
+    }
+    return (
+      <div className="groups-container">
+        {listCanvas.map(l => <button key={l.id} className='canvas-btn' onClick={() => onCanvasClick(l.id)}>{l.name}</button> )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="left-sidebar">
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={tabValue} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Modules" {...a11yProps(0)} />
+          <Tab label="Canvas" {...a11yProps(1)} />
+        </Tabs>
+      </Box>
+      {renderTabContent()}
 
       {showCreateModule && selectedGroupId && (
         <CreateDrawer

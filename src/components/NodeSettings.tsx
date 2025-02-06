@@ -312,13 +312,13 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       <div className="node-settings-content">
         {isLoading ? (
           <Stack spacing={1}>
-          <Skeleton variant="text" width={64} />
-          <Skeleton variant="rounded" height={40} />
-          <Skeleton variant="text" width={64} />
-          <Skeleton variant="rounded" height={40} />
-          <Skeleton variant="text" width={64} />
-          <Skeleton variant="rounded" height={40} />
-        </Stack>
+            <Skeleton variant="text" width={64} animation="wave" />
+            <Skeleton variant="rounded" height={40} animation="wave" />
+            <Skeleton variant="text" width={64} animation="wave" />
+            <Skeleton variant="rounded" height={40} animation="wave" />
+            <Skeleton variant="text" width={64} animation="wave" />
+            <Skeleton variant="rounded" height={40} animation="wave" />
+          </Stack>
         ) : (
           <form className="schema-form">
             <div className="form-group">
@@ -383,7 +383,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
 
       <div className="node-settings-footer">
         <Button variant="outlined" onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={onSave} loading={saveIsLoading}>{module.type === 'custom' ? 'Update' : 'Save'}</Button>
+        <Button variant="contained" onClick={onSave} loading={saveIsLoading}>{module?.type === 'custom' ? 'Update' : 'Save'}</Button>
       </div>
     </div>
   );
