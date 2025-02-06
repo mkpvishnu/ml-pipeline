@@ -23,6 +23,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
 
   useEffect(() => {
     if (run && canvasId) {
+      setContent(''); // Clear content when a new run is selected
       const fetchStream = async () => {
         try {
           // const response = await fetch(`${DOMAIN}/api/v1/stream/${run}/stream`); // Replace with your URL
@@ -98,6 +99,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
     };
 
     if (run && canvasId && !intervalRef.current) {
+      setHistory([]);
       intervalRef.current = setInterval(fetchHistory, 1000);
       fetchHistory(); // Call immediately instead of waiting 1 second
     }
