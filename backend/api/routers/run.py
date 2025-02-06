@@ -26,7 +26,7 @@ settings = get_settings()
 
 router = APIRouter(tags=["runs"])
 
-@router.post("/", response_model=RunResponse)
+@router.post("", response_model=RunResponse)
 async def create_run(
     *,
     db: AsyncSession = Depends(get_db),
