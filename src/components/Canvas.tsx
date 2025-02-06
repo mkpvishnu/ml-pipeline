@@ -239,12 +239,21 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         return n;
       });
       setNodes(updatedNodes);
-      const updatedEdges = edges.map((e) => {
-        if (e.source === data.parent_module_id) {
-          return { ...e, source: String(data.id) };
-        }
-        return e;
-      });
+      let updatedEdges = edges;
+      if (node.status === 'draft') {
+        updatedEdges = edges.map((e) => {
+          if (e.target == data.parent_module_id) {
+            return { ...e, target: String(data.id) };
+          }
+          return e;
+        })
+      }
+      // const updatedEdges = edges.map((e) => {
+      //   if (e.source == data.parent_module_id) {
+      //     return { ...e, source: String(data.id) };
+      //   }
+      //   return e;
+      // });
       setEdges(updatedEdges);
       setSelectedNode(null);
       setShouldRerender(prev => !prev);

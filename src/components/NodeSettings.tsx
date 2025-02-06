@@ -17,6 +17,20 @@ import Grid from '@mui/material/Grid2';
 import { DOMAIN, ACCOUNT_ID } from '../constants/app';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { styled } from '@mui/material/styles';
+
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
 
 interface NodeSettingsProps {
   nodeId: string;
@@ -244,6 +258,26 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
               {updatedOptions?.map((opt, id) =>  <MenuItem key={id} value={opt.id}>{opt.name}</MenuItem>)}
             </Select>
           </FormControl>
+        )
+      case 'upload':
+        return (
+          <Button
+            component="label"
+            role={undefined}
+            variant="contained"
+            tabIndex={-1}
+            startIcon={<CloudUploadIcon />}
+          >
+            Upload files
+            <VisuallyHiddenInput
+              type="file"
+              onChange={(event) => {
+                // console.log(event.target.files)
+                handleChange(event.target.files)
+              }}
+              multiple
+            />
+          </Button>
         )
       default:
         return null;
