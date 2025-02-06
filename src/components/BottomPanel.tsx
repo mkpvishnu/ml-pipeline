@@ -80,17 +80,15 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           // console.log('fetch history data', { data });
           setHistory([]);
           console.log(`WORKFLOW STATUS ----- ${data.status}`);
-
+          setHistory((prevHistory) => [
+            ...prevHistory,
+            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message}: ${value.status}`),
+          ]);
           if (data.status === "COMPLETED" || data.status === "FAILED") {
             setIsCompleted(true);
             clearInterval(intervalRef.current); // Correctly clear interval
             intervalRef.current = null; // Reset ref
             console.log('cleared');
-          } else {
-            setHistory((prevHistory) => [
-              ...prevHistory,
-              ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message}: ${value.status}`),
-            ]);
           }
         })
         .catch((error) => {
