@@ -423,7 +423,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
               </div>
             ))}
             <Grid container spacing={2}>
-              {updatedModule.arraySupported && (
+              {updatedModule.config_schema.arraySupported && (
                 <Grid offset={{ md: 'auto' }}>
                   <Button startIcon={<AddIcon />} variant="contained" onClick={addSet}>Add</Button>
                 </Grid>

@@ -728,8 +728,8 @@ export const mockGroups: Group[] = [
         "identifier": "data_cleaner",
         "description": "Clean and preprocess data",
         "scope": "global",
-        "arraySupported": true,
         "config_schema": {
+          "arraySupported": true,
           "fields": [
             [
               {
