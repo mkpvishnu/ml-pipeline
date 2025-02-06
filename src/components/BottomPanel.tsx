@@ -121,6 +121,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
                 <span></span>
                 <span></span>
                 <span></span>
+                <span></span>
               </div>
             </div>
           </pre>
@@ -135,6 +136,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
               ))}
               {isCompleted ? null : (
                 <div className="thinking-loader">
+                  <span></span>
                   <span></span>
                   <span></span>
                   <span></span>
