@@ -48,52 +48,56 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
 
   const { screenToFlowPosition, fitView, setCenter } = useReactFlow();
 
+  const fetchCanvas = () => {
+    fetch(`${DOMAIN}/api/v1/canvas/${canvasId}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'account-id': ACCOUNT_ID,
+        accept: 'application/json',
+      },
+    }).then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      // setCanvasId(data.id);
+      setEdges(data.module_config.edges);
+      const updatedNodes = data.module_config.nodes.map(n => ({
+        ...n, 
+        data: {
+          ...n.data, 
+          label: (
+            <div className='node-parent'>
+              <p>{n.data.moduleData?.name || n.data.name}</p>
+              <p className='node-state published'>{n.data.moduleData?.status || n.data.status}</p>
+            </div>
+          )
+        }, 
+        selected: false
+      }))
+      setNodes(updatedNodes);
+      // console.log({ updatedNodes });
+      
+      setSelectedNode(null);
+      // if (updatedNodes.length > 0) {
+      //   const node = updatedNodes[0]; // Adjust this for multiple nodes
+      //   console.log({ node });
+        
+      //   setCenter(node.position.x, node.position.y, { zoom: 1.5 });
+      //   fitView({ padding: 0.2, duration: 5000 });
+      // }
+      // On Canvas  save, create the canvas. Move to Canvas tab.
+      setTabValue(0);
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
+  }
+
   useEffect(() => {
     if (!canvasId) {
       setNodes([]);
       setEdges([]);
       setSelectedNode(null);
     } else {
-      fetch(`${DOMAIN}/api/v1/canvas/${canvasId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'account-id': ACCOUNT_ID,
-          accept: 'application/json',
-        },
-      }).then(response => response.json())
-      .then(data => {
-        console.log('Success:', data);
-        // setCanvasId(data.id);
-        setEdges(data.module_config.edges);
-        const updatedNodes = data.module_config.nodes.map(n => ({
-          ...n, 
-          data: {
-            ...n.data, 
-            label: (
-              <div className='node-parent'>
-                <p>{n.data.moduleData?.name || n.data.name}</p>
-                <p className='node-state published'>{n.data.moduleData?.status || n.data.status}</p>
-              </div>
-            )
-          }, 
-          selected: false
-        }))
-        setNodes(updatedNodes);
-        // console.log({ updatedNodes });
-        
-        setSelectedNode(null);
-        // if (updatedNodes.length > 0) {
-        //   const node = updatedNodes[0]; // Adjust this for multiple nodes
-        //   console.log({ node });
-          
-        //   setCenter(node.position.x, node.position.y, { zoom: 1.5 });
-        //   fitView({ padding: 0.2, duration: 5000 });
-        // }
-        // On Canvas  save, create the canvas. Move to Canvas tab.
-        setTabValue(0);
-      }).catch((error) => {
-        console.error('Error:', error);
-      });
+      fetchCanvas();
     }
   }, [canvasId]);
 
@@ -320,6 +324,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
     // fetch canvas to populate nodes and edges
     console.log('fetch canvas to populate nodes and edges', {canvasId});
     setRun('');
+    fetchCanvas();
   }
 
   const onRunCanvas = () => {
