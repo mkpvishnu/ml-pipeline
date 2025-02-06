@@ -42,6 +42,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   const [selectedNode, setSelectedNode] = useState<{ id: string; moduleId: string } | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRunLoading, setIsRunLoading] = useState(false);
 
   const { setShouldRerender } = useApiRender();
 
@@ -322,6 +323,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   }
 
   const onRunCanvas = () => {
+    setIsRunLoading(true);
     fetch(`${DOMAIN}/api/v1/runs`, {
       method: 'POST',
       headers: {
@@ -338,6 +340,8 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
       setRun(data.workflow_id);
     }).catch((error) => {
       console.error('Error:', error);
+    }).finally(() => {
+      setIsRunLoading(false);
     });
   }
 
@@ -351,7 +355,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
             {canvasId ? <Button size="small" variant="outlined" onClick={onNewCanvas}>New</Button> : null}
             {canvasId ? <Button size="small" variant="outlined" onClick={onResetCanvas}>Reset</Button> : null}
             <Button size="small" variant="contained" onClick={onSaveCanvas} loading={isLoading}>{canvasId ? 'Update' : 'Save'}</Button>
-            {canvasId ? <Button size="small" variant="outlined" onClick={onRunCanvas} disabled={isLoading} color="success">Run</Button> : null}
+            {canvasId ? <Button size="small" variant="outlined" onClick={onRunCanvas} disabled={isLoading} loading={isRunLoading} color="success">Run</Button> : null}
           </Grid>
         </Box>
       </div>
