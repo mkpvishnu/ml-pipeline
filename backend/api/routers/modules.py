@@ -107,9 +107,7 @@ async def update_module_code(
     module_id: str,
     code_update: ModuleCodeUpdate,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
-):
+    _: str = Depends(validate_account_id)):
     """Update module code"""
     module = await crud_module.get_by_account_and_id(
         db,
@@ -129,8 +127,7 @@ async def update_module_config_schema(
     module_id: str,
     config_update: ModuleConfigSchemaUpdate,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Update module config schema"""
     module = await crud_module.get_by_account_and_id(
@@ -151,8 +148,7 @@ async def update_module_user_config(
     module_id: str,
     config_update: ModuleUserConfigUpdate,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Update module user config"""
     module = await crud_module.get_by_account_and_id(
@@ -172,9 +168,7 @@ async def run_module(
     db: AsyncSession = Depends(get_db),
     module_id: str,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_module(module_id, account_id, x)),
-    background_tasks: BackgroundTasks
+    _: str = Depends(validate_account_id)
 ):
     """Run a module"""
     module = await crud_module.get_by_account_and_id(
@@ -223,8 +217,7 @@ async def delete_module(
     db: AsyncSession = Depends(get_db),
     module_id: str,
     account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id),
-    __: str = Depends(lambda x: validate_module(module_id, account_id, x))
+    _: str = Depends(validate_account_id)
 ):
     """Delete module"""
     module = await crud_module.get_by_account_and_id(
