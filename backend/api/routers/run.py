@@ -6,6 +6,7 @@ import httpx
 import asyncio
 from datetime import datetime, timedelta
 import logging
+import UserConfigAdaptor as adaptor
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,10 @@ async def create_run(
         )
     
     # Prepare request payload from canvas module_config
-    request_payload = canvas.module_config
+    request_payload = adaptor.transform_graph_to_modules(canvas.module_config)
+    request_payload["canvas_name"] = canvas.name
     # Parse the request payload for freshflow support
+    print(request_payload)
     
     # Trigger external service first to get workflow_id
     async with httpx.AsyncClient() as client:
