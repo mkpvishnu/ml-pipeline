@@ -112,7 +112,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
           ...data,
           config_schema: {
             ...data.config_schema,
-            ...(data.config_schema.fields.length === data.user_config.length ? {} : { fields : Array(data.user_config.length - 1).fill([...data.config_schema.fields[0]]) })
+            ...(data.config_schema.fields.length === data.user_config.length ? {} : { fields : Array(data.user_config.length).fill([...data.config_schema.fields[0]]) })
           }
         }
         setUpdatedModule(sss);
