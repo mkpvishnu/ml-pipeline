@@ -55,6 +55,7 @@ const App: React.FC = () => {
         <BottomPanel 
           expanded={isBottomPanelExpanded} 
           run={run}
+          setRun={setRun}
           canvasId={canvasId}
           history={history}
           setHistory={setHistory}

@@ -8,12 +8,12 @@ interface BottomPanelProps {
   expanded: boolean;
 }
 
-const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, history, setHistory }) => {
+const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, setRun, canvasId, history, setHistory }) => {
   const { 
     activeBottomTab,
     setActiveBottomTab,
     toggleBottomPanel,
-    runs
+    setBottomPanel,
   } = useStore();
 
   const [content, setContent] = useState(''); // State to hold the streamed content
@@ -87,6 +87,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           ]);
           if (data.status === "COMPLETED" || data.status === "FAILED") {
             setIsCompleted(true);
+            setRun('');
             clearInterval(intervalRef.current); // Correctly clear interval
             intervalRef.current = null; // Reset ref
             console.log('cleared');
@@ -119,12 +120,14 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
         return (
           <pre>
             <div id="output">{content}
-            <div className="thinking-loader">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+              {run && canvasId ? (
+                <div className="thinking-loader">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+              ): null}
             </div>
           </pre>
         );
@@ -136,14 +139,14 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
               {history?.map((h, index) => (
                 <div key={index}>{h}</div>
               ))}
-              {isCompleted ? null : (
+              {run && canvasId ? (
                 <div className="thinking-loader">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              )}
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+              ): null}
             </pre>
           {isCompleted && <p>Process Completed ✅</p>}
           </div>
@@ -173,6 +176,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           <button
             className={`tab ${activeBottomTab === 'logs' ? 'active' : ''}`}
             onClick={() => {
+              setBottomPanel(true)
               setActiveBottomTab('logs')
             }}
           >
@@ -182,6 +186,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           <button
             className={`tab ${activeBottomTab === 'history' ? 'active' : ''}`}
             onClick={() => {
+              setBottomPanel(true);
               setActiveBottomTab('history')
             }}
           >

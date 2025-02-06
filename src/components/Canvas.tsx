@@ -37,9 +37,10 @@ const nodeTypes: NodeTypes = {
 };
 
 const WORKFLOW_COLOR = {
-  COMPLETED: 'green',
-  FAILED: 'red',
-  IN_PROGRESS: 'orange',
+  WAITING: '#F7C948', // yellow
+  COMPLETED: '#28A745', // green
+  FAILED: '#DC3545', // red
+  IN_PROGRESS: '#007BFF', // blue
 }
 
 const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run, setRun, history}) => {
@@ -120,7 +121,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   // ]
 
   useEffect(() => {
-    if (run && canvasId && history.length) {
+    if (history.length) {
       // get the history
       // preselect the node based on status and its name
       // show the state of all the nodes
@@ -147,7 +148,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         })
       );
     }
-  }, [run, canvasId, history])
+  }, [history])
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
