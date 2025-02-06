@@ -17,6 +17,7 @@ class Run(Base):
     account_id = Column(BigInteger, ForeignKey("accounts.id"), nullable=False)
     canvas_id = Column(BigInteger, ForeignKey("canvases.id"))  # Optional for module runs
     module_id = Column(BigInteger, ForeignKey("modules.id"))   # Optional for canvas runs
+    workflow_id = Column(String(255))  # Added workflow_id field
     status = Column(String(50), nullable=False, default="REQUESTED")  # REQUESTED, INPROGRESS, WAITING, ERROR, COMPLETED, NEED_INPUT
     results = Column(JSON)
     error = Column(JSON)

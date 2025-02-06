@@ -1,13 +1,11 @@
-from fastapi import APIRouter, Depends, Header, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
-import httpx
 
 from backend.api.dependencies import (
     get_db, validate_account_id, validate_canvas
 )
 from backend.crud import canvas as crud_canvas
-from backend.crud import run as crud_run
 from backend.schemas.canvas import (
     CanvasCreate, CanvasUpdate, CanvasResponse,
     CanvasNameUpdate, CanvasModuleConfigUpdate
@@ -126,54 +124,6 @@ async def update_canvas_module_config(
         db_obj=canvas,
         module_config=config_update.module_config
     )
-
-@router.post("/{canvas_id}/run")
-async def run_canvas(
-    *,
-    db: AsyncSession = Depends(get_db),
-    canvas_id: str,
-    account_id: Annotated[str, Header()],
-    _: str = Depends(validate_account_id)
-):
-    """Run a canvas"""
-    canvas = await crud_canvas.get_by_account_and_id(
-        db,
-        account_id=account_id,
-        canvas_id=canvas_id
-    )
-    
-    # Create run record
-    run = await crud_run.create(
-        db=db,
-        account_id=account_id,
-        canvas_id=canvas_id
-    )
-    
-    # Trigger external service
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{settings.freshflow}/execute",
-                json={
-                    "run_id": run.id,
-                    "module_config": canvas.module_config
-                }
-            )
-            response.raise_for_status()
-        except httpx.HTTPError as e:
-            # Update run status to error
-            await crud_run.update_status(
-                db=db,
-                db_obj=run,
-                status="ERROR",
-                error={"message": str(e)}
-            )
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to trigger external service: {str(e)}"
-            )
-    
-    return run
 
 @router.delete("/{canvas_id}")
 async def delete_canvas(

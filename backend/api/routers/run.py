@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, Header, HTTPException, BackgroundTasks
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 import httpx
 import asyncio
 from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 from backend.api.dependencies import (
     get_db, validate_account_id, validate_module, validate_canvas
@@ -25,15 +29,54 @@ router = APIRouter(tags=["runs"])
 async def create_run(
     *,
     db: AsyncSession = Depends(get_db),
-    run_in: RunCreate,
-    account_id: Annotated[str, Header()]
+    account_id: Annotated[str, Header()],
+    canvas_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id),
 ):
-    """Create new run"""
-    return await crud_run.create(
-        db=db,
-        canvas_id=run_in.canvas_id,
-        account_id=account_id
+    """Create new run with workflow integration"""
+    # Get canvas details
+    canvas = await crud_canvas.get_by_account_and_id(
+        db,
+        account_id=account_id,
+        canvas_id=canvas_id
     )
+    
+    if not canvas.module_config:
+        raise HTTPException(
+            status_code=400,
+            detail="Canvas has no module configuration"
+        )
+    
+    # Prepare request payload from canvas module_config
+    request_payload = canvas.module_config
+    # Parse the request payload for freshflow support
+    
+    # Trigger external service first to get workflow_id
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{settings.FRESHFLOW_URL}/api/workflow",
+                json=request_payload
+            )
+            response.raise_for_status()
+            workflow_data = response.json()
+            
+            # Create run record with workflow_id
+            run = await crud_run.create(
+                db=db,
+                account_id=account_id,
+                canvas_id=canvas_id,
+                workflow_id=workflow_data["workflow_id"],
+                status=workflow_data["status"]
+            )
+            
+            return run
+            
+        except httpx.HTTPError as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to trigger workflow: {str(e)}"
+            )
 
 @router.get("/", response_model=List[RunResponse])
 async def list_runs(
@@ -191,4 +234,50 @@ async def get_run_status(
         "started_at": run.started_at,
         "completed_at": run.completed_at,
         "error": run.error
-    } 
+    }
+
+@router.get("/{run_id}/stream")
+async def stream_run_status(
+    *,
+    db: AsyncSession = Depends(get_db),
+    run_id: str,
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id)
+):
+    """Stream run status updates from the workflow service"""
+    run = await crud_run.get_by_account_and_id(
+        db,
+        account_id=account_id,
+        run_id=run_id
+    )
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    
+    if not run.workflow_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Run does not have an associated workflow"
+        )
+
+    async def event_generator():
+        async with httpx.AsyncClient() as client:
+            try:
+                async with client.stream(
+                    'GET',
+                    f"{settings.FRESHFLOW_URL}/api/workflow/{run.workflow_id}/stream"
+                ) as response:
+                    logger.info(f"Streaming workflow status for {run.workflow_id}")
+                    logger.info(f"Response: {response}")
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if line:
+                            yield f"data: {line}\n\n"
+            except httpx.HTTPError as e:
+                error_msg = f"Failed to stream workflow status: {str(e)}"
+                yield f"data: {{'error': '{error_msg}'}}\n\n"
+                return
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream"
+    ) 

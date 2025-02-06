@@ -27,13 +27,19 @@ class Settings(BaseSettings):
     DB_ECHO: bool = os.getenv("DB_ECHO", "False").lower() == "true"
 
     # External Service Settings
-    freshflow: Optional[str] = os.getenv("freshflow")
+    FRESHFLOW_URL: Optional[str] = os.getenv("FRESHFLOW_URL")
 
     # CORS Settings
     CORS_ORIGINS: list = ["*"]  # In production, replace with actual origins
     CORS_CREDENTIALS: bool = True
     CORS_METHODS: list = ["*"]
     CORS_HEADERS: list = ["*"]
+
+    # AWS Settings
+    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY")
+    AWS_REGION: str = os.getenv("AWS_REGION")
+    AWS_BUCKET_NAME: str = os.getenv("AWS_BUCKET_NAME")
 
     class Config:
         env_file = ".env"

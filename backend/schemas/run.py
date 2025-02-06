@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class RunStatus(str, Enum):
     """Run status enum"""
     REQUESTED = "REQUESTED"
+    CREATED = "CREATED"
     INPROGRESS = "INPROGRESS"
     WAITING = "WAITING"
     ERROR = "ERROR"
@@ -14,6 +15,7 @@ class RunStatus(str, Enum):
 class RunBase(BaseModel):
     """Base Run Schema"""
     status: RunStatus = RunStatus.REQUESTED
+    workflow_id: Optional[str] = None
     results: Optional[Dict] = None
     error: Optional[Dict] = None
 
@@ -30,6 +32,7 @@ class RunCreate(RunBase):
 class RunUpdate(RunBase):
     """Schema for updating a run"""
     status: Optional[RunStatus] = None
+    workflow_id: Optional[str] = None
     results: Optional[Dict] = None
     error: Optional[Dict] = None
 
@@ -42,6 +45,7 @@ class RunStatusUpdate(BaseModel):
 class RunStatusResponse(BaseModel):
     """Schema for run status response"""
     status: RunStatus
+    workflow_id: Optional[str] = None
     started_at: datetime
     completed_at: Optional[datetime] = None
     error: Optional[Dict] = None
@@ -52,6 +56,7 @@ class RunResponse(RunBase):
     account_id: int
     canvas_id: Optional[int] = None
     module_id: Optional[int] = None
+    workflow_id: Optional[str] = None
     started_at: datetime
     completed_at: Optional[datetime] = None
     created_at: datetime

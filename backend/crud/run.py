@@ -13,7 +13,9 @@ async def create(
     *,
     account_id: str,
     canvas_id: Optional[str] = None,
-    module_id: Optional[str] = None
+    module_id: Optional[str] = None,
+    workflow_id: Optional[str] = None,
+    status: Optional[str] = RunStatus.REQUESTED
 ) -> Run:
     """Create new run"""
     if canvas_id and module_id:
@@ -41,7 +43,8 @@ async def create(
         account_id=account_id,
         canvas_id=canvas_id,
         module_id=module_id,
-        status=RunStatus.REQUESTED,
+        workflow_id=workflow_id,
+        status=status,
         started_at=datetime.utcnow()
     )
     db.add(db_obj)
