@@ -45,7 +45,7 @@ const TopBar: React.FC = () => {
   return (
     <div className="top-bar">
       <div className="left-actions">
-        <img src={logo} alt="Freddy" height={32} />
+        <img src={logo} alt="Freddy" height={32} /> <span className='product-name'>Freshflow</span>
         {/* <div className="action-group">
           <button 
             className="btn btn-icon tooltip-wrapper" 
