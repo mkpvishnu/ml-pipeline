@@ -44,6 +44,10 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   const [isLoading, setIsLoading] = useState(false);
   const [isRunLoading, setIsRunLoading] = useState(false);
 
+  const { 
+    setBottomPanel,
+  } = useStore();
+
   const { setShouldRerender } = useApiRender();
 
   const { screenToFlowPosition, fitView, setCenter } = useReactFlow();
@@ -337,6 +341,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
   }
 
   const onRunCanvas = () => {
+    setBottomPanel(true);
     setIsRunLoading(true);
     fetch(`${DOMAIN}/api/v1/runs`, {
       method: 'POST',

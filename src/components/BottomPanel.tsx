@@ -13,7 +13,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
     activeBottomTab,
     setActiveBottomTab,
     toggleBottomPanel,
-    setBottomPanel,
     runs
   } = useStore();
 
@@ -157,7 +156,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           <button
             className={`tab ${activeBottomTab === 'logs' ? 'active' : ''}`}
             onClick={() => {
-              setBottomPanel(true);
               setActiveBottomTab('logs')
             }}
           >
@@ -167,7 +165,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           <button
             className={`tab ${activeBottomTab === 'history' ? 'active' : ''}`}
             onClick={() => {
-              setBottomPanel(true);
               setActiveBottomTab('history')
             }}
           >
