@@ -85,7 +85,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
             setHistory((prevHistory) => [...prevHistory, `${key}: ${value.status}`]);
           });
 
-          if (data.status === "COMPLETED") {
+          if (data.status === "COMPLETED" || data.status === "FAILED") {
             setIsCompleted(true);
             clearInterval(intervalId);
           }
@@ -97,7 +97,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
     };
 
     if (run && canvasId) {
-      intervalId = setInterval(fetchHistory, 5000);
+      intervalId = setInterval(fetchHistory, 1000);
     }
 
     // Cleanup interval on unmount
