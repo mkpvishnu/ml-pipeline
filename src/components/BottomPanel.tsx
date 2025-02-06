@@ -13,6 +13,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
     activeBottomTab,
     setActiveBottomTab,
     toggleBottomPanel,
+    setBottomPanel,
     runs
   } = useStore();
 
@@ -82,7 +83,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           console.log(`WORKFLOW STATUS ----- ${data.status}`);
           setHistory((prevHistory) => [
             ...prevHistory,
-            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message}: ${value.status}`),
+            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message} ---> ${JSON.stringify(value.detailed_output?.output || {})}: ${value.status}`),
           ]);
           if (data.status === "COMPLETED" || data.status === "FAILED") {
             setIsCompleted(true);
@@ -155,7 +156,10 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
         <div className="tabs">
           <button
             className={`tab ${activeBottomTab === 'logs' ? 'active' : ''}`}
-            onClick={() => setActiveBottomTab('logs')}
+            onClick={() => {
+              setBottomPanel(true);
+              setActiveBottomTab('logs')
+            }}
           >
             <FiList className="icon" />
             <span>Logs</span>
@@ -163,6 +167,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           <button
             className={`tab ${activeBottomTab === 'history' ? 'active' : ''}`}
             onClick={() => {
+              setBottomPanel(true);
               setActiveBottomTab('history')
             }}
           >

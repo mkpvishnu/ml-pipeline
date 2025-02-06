@@ -24,6 +24,7 @@ interface AppState {
   setSelectedCanvas: (canvasId: string | null) => void;
   toggleSettings: () => void;
   toggleBottomPanel: () => void;
+  setBottomPanel: () => void;
   setActiveBottomTab: (tab: 'logs' | 'history' | 'preview') => void;
   
   // Data Actions
@@ -77,6 +78,9 @@ const useStore = create<AppState>()(
       toggleBottomPanel: () => 
         set((state) => ({ isBottomPanelExpanded: !state.isBottomPanelExpanded })),
       
+      setBottomPanel: (value) => 
+        set(() => ({ isBottomPanelExpanded: value })),
+
       setActiveBottomTab: (tab) => 
         set({ activeBottomTab: tab }),
       
