@@ -66,7 +66,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
           ...n.data, 
           label: (
             <div className='node-parent'>
-              <p>{n.data.moduleData?.name || n.data.name}</p>
+              <p className='node-parent-name'>{n.data.moduleData?.name || n.data.name}</p>
               <p className='node-state published'>{n.data.moduleData?.status || n.data.status}</p>
             </div>
           )
@@ -122,7 +122,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
             ...item.data,
             label: (
              <div className='node-parent'>
-               <p>{item.data?.name}</p>
+               <p className='node-parent-name'>{item.data?.name}</p>
                <p className='node-state published'>{item.data.status}</p>
                <p className='node-workflow-status'>{history.find(h => h.split('---->')[0].trim() === item.data.name)?.split(':')[1]}</p>
              </div>
@@ -163,7 +163,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         data: {
           label: (
             <div className='node-parent'>
-              <p>{moduleData.name}</p>
+              <p className='node-parent-name'>{moduleData.name}</p>
               <p className={`node-state ${moduleData.status}`}>{moduleData.status}</p>
             </div>
           ),
@@ -216,7 +216,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
               ...data, 
               label: (
                 <div className='node-parent'>
-                  <p>{data.name}</p>
+                  <p className='node-parent-name'>{data.name}</p>
                   <p className='node-state published'>{data.status}</p>
                 </div>
               ) 
@@ -229,7 +229,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
               ...data, 
               label:  (
                 <div className='node-parent'>
-                  <p>{data.name}</p>
+                  <p className='node-parent-name'>{data.name}</p>
                   <p className='node-state published'>{data.status}</p>
                 </div>
               ) 
@@ -298,7 +298,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
           ...n.data, 
           label: (
             <div className='node-parent'>
-              <p>{n.data.name}</p>
+              <p className='node-parent-name'>{n.data.name}</p>
               <p className='node-state published'>{n.data.status}</p>
             </div>
           )
