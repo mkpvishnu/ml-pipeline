@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { FiChevronUp, FiChevronDown, FiClock, FiList } from 'react-icons/fi';
 import useStore from '../store';
 import './BottomPanel.css';
-import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
+import { DOMAIN, ACCOUNT_ID } from '../constants/app';
 
 interface BottomPanelProps {
   expanded: boolean;

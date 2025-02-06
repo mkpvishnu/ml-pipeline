@@ -18,7 +18,13 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import { useApiRender } from '../context/ApiRenderContext';
-import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
+import { DOMAIN, ACCOUNT_ID } from '../constants/app';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Button from '@mui/material/Button';
 
 function a11yProps(index) {
   return {
@@ -39,32 +45,33 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listCanvas, setListCanvas] = useState([]);
+  const [open, setOpen] = React.useState(null);
 
   const { shouldRerender } = useApiRender();
 
-  useEffect(() => {
-    const fetchGroupsWithModules = async () => {
-      fetch(`${DOMAIN}/api/v1/groups/?skip=0&limit=100`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'account-id': ACCOUNT_ID,
-          accept: 'application/json',
-        },
-      }).then(response => response.json())
-      .then(data => {
-        // console.log('Success:', data);
-        setGroups(data)
-        // Expand the first group by default if there are groups
-        if (data.length > 0) {
-          setExpandedGroups(new Set([data[0].id]));
-        }
-      }).catch((error) => {
-        console.error('Error fetching groups:', error);
-        setError('Failed to load groups');
-        setGroups([]);
-      });
-    };
+  const fetchGroupsWithModules = async () => {
+    fetch(`${DOMAIN}/api/v1/groups/?skip=0&limit=100`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'account-id': ACCOUNT_ID,
+        accept: 'application/json',
+      },
+    }).then(response => response.json())
+    .then(data => {
+      // console.log('Success:', data);
+      setGroups(data)
+      // Expand the first group by default if there are groups
+      if (data.length > 0) {
+        setExpandedGroups(new Set([data[0].id]));
+      }
+    }).catch((error) => {
+      console.error('Error fetching groups:', error);
+      setError('Failed to load groups');
+      setGroups([]);
+    });
+  };
 
+  useEffect(() => {
     const fetchCanvas = () => {
       fetch(`${DOMAIN}/api/v1/canvas/?skip=0&limit=100`, {
         headers: {
@@ -136,43 +143,62 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
     setShowCreateModule(true);
   };
 
-  const handleEditGroup = (e: React.MouseEvent, groupId: string) => {
-    e.stopPropagation();
-    setSelectedGroupId(groupId);
-    setShowEditGroup(true);
+  // const handleEditGroup = (e: React.MouseEvent, groupId: string) => {
+  //   e.stopPropagation();
+  //   setSelectedGroupId(groupId);
+  //   setShowEditGroup(true);
+  // };
+
+  // const handleDeleteGroup = async (e: React.MouseEvent, groupId: string) => {
+  //   e.stopPropagation();
+  //   if (window.confirm('Are you sure you want to delete this group?')) {
+  //     try {
+  //       await api.groups.delete(groupId);
+  //       deleteGroup(groupId);
+  //     } catch (err) {
+  //       console.error('Error deleting group:', err);
+  //       alert('Failed to delete group');
+  //     }
+  //   }
+  // };
+
+  // const handleEditModule = (e: React.MouseEvent, moduleId: string, groupId: string) => {
+  //   e.stopPropagation();
+  //   setSelectedModule({ id: moduleId, groupId });
+  //   setShowEditModule(true);
+  // };
+
+  const handleClickOpen = (moduleId: string, name, groupId: string) => {
+    setOpen({ moduleId, name, groupId });
   };
 
-  const handleDeleteGroup = async (e: React.MouseEvent, groupId: string) => {
-    e.stopPropagation();
-    // if (window.confirm('Are you sure you want to delete this group?')) {
-    //   try {
-    //     await api.groups.delete(groupId);
-    //     deleteGroup(groupId);
-    //   } catch (err) {
-    //     console.error('Error deleting group:', err);
-    //     alert('Failed to delete group');
-    //   }
-    // }
+  const handleClose = () => {
+    setOpen(null);
   };
 
-  const handleEditModule = (e: React.MouseEvent, moduleId: string, groupId: string) => {
-    e.stopPropagation();
-    setSelectedModule({ id: moduleId, groupId });
-    setShowEditModule(true);
-  };
-
-  const handleDeleteModule = async (e: React.MouseEvent, moduleId: string, groupId: string) => {
-    e.stopPropagation();
-    // if (window.confirm('Are you sure you want to delete this module?')) {
-    //   try {
-    //     await api.modules.delete(groupId, moduleId);
-    //     deleteModule(groupId, moduleId);
-    //   } catch (err) {
-    //     console.error('Error deleting module:', err);
-    //     alert('Failed to delete module');
-    //   }
-    // }
-  };
+  const handleDeleteModule = () => {
+    fetch(`${DOMAIN}/api/v1/modules/${open.moduleId}?x=12`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+        'account-id': ACCOUNT_ID
+      }
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json(); // If the API returns a response
+      })
+      .then(data => {
+        console.log('Delete successful:', data);
+        // refresh the groups list
+        fetchGroupsWithModules();
+      })
+      .catch(error => console.error('Error:', error))
+      .finally(() => setOpen(null))
+  }
 
   if (isLoading) {
     return (
@@ -234,7 +260,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
                     <img src={group.icon_url} height="16" width="16" />
                     <span className="group-name">{group.name}</span>
                   </div>
-                  <div className="group-actions">
+                  {/* <div className="group-actions">
                     <button
                       className="action-btn"
                       onClick={(e) => handleEditGroup(e, group.id)}
@@ -250,7 +276,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
                       <FiTrash2 className="icon" />
                     </button>
                     <FiChevronRight className="icon-chevron" />
-                  </div>
+                  </div> */}
                 </div>
                 
                 <div className={`modules-container ${expandedGroups.has(group.id) ? 'expanded' : ''}`}>
@@ -266,22 +292,24 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
                         <img src={module.icon_url} height="16" width="16" />
                         <span className="module-name">{module.name}</span>
                       </div>
-                      <div className="module-actions">
-                        <button
-                          className="action-btn"
-                          onClick={(e) => handleEditModule(e, module.id, group.id)}
-                          title="Edit Module"
-                        >
-                          <FiEdit2 className="icon" />
-                        </button>
-                        <button
-                          className="action-btn"
-                          onClick={(e) => handleDeleteModule(e, module.id, group.id)}
-                          title="Delete Module"
-                        >
-                          <FiTrash2 className="icon" />
-                        </button>
-                      </div>
+                      {module.type === 'custom' ? (
+                        <div className="module-actions">
+                          {/* <button
+                            className="action-btn"
+                            onClick={(e) => handleEditModule(e, module.id, group.id)}
+                            title="Edit Module"
+                          >
+                            <FiEdit2 className="icon" />
+                          </button> */}
+                          <button
+                            className="action-btn"
+                            onClick={(e) => handleClickOpen(module.id, module.name, group.id)}
+                            title="Delete Module"
+                          >
+                            <FiTrash2 className="icon" />
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   ))}
                   <button
@@ -352,6 +380,26 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
           }}
         />
       )}
+      <Dialog
+        open={Boolean(open?.moduleId)}
+        onClose={handleClose}
+        aria-labelledby="draggable-dialog-title"
+      >
+        <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
+          Delete module
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure want to delete the {open?.name}?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteModule}>Delete</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

@@ -5,3 +5,4 @@ ml_pipe/
 __pycache__/
 .env
 *.env
+dist

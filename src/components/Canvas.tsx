@@ -23,7 +23,7 @@ import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import { useApiRender } from '../context/ApiRenderContext';
-import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
+import { DOMAIN, ACCOUNT_ID } from '../constants/app';
 
 interface NodeData {
   moduleId: string;
@@ -312,10 +312,7 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         'Content-Type': 'application/json',
         'account-id': ACCOUNT_ID,
         accept: 'application/json',
-        // ACTUAL
-        // 'canvas-id': canvasId
-        // TESTING
-        'canvas-id': 1
+        'canvas-id': canvasId
       },
     }).then(response => response.json())
     .then(data => {

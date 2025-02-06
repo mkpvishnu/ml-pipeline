@@ -14,7 +14,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import AddIcon from '@mui/icons-material/Add';
 import Grid from '@mui/material/Grid2';
-import { DOMAIN, ACCOUNT_ID } from '../../constants/app';
+import { DOMAIN, ACCOUNT_ID } from '../constants/app';
 
 interface NodeSettingsProps {
   nodeId: string;
