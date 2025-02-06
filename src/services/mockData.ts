@@ -287,6 +287,87 @@ export const mockGroups: Group[] = [
             "modelVersion": "suma 3"
           }
         ]
+      },
+      {
+        "id": "m5",
+        "name": "Test 5",
+        "identifier": "data_cleaner",
+        "description": "Clean and preprocess data",
+        "scope": "global",
+        "config_schema": {
+          "fields": [
+            [
+              {
+                "id": "baseType",
+                "type": "dropdown",
+                "title": "Model Version",
+                "required": true,
+                "options": [
+                  {
+                    "id": "api",
+                    "name": "API",
+                    "toShow": "method,url,header,body"
+                  },
+                  {
+                    "id": "canvas",
+                    "name": "Canvas",
+                    "toShow": "canvasList"
+                  },
+                ]
+              },
+              {
+                "id": "method",
+                "type": "text",
+                "title": "Method",
+                "required": true,
+              },
+              {
+                "id": "url",
+                "type": "text",
+                "title": "URL",
+                "required": true,
+              },
+              {
+                "id": "header",
+                "type": "text",
+                "title": "Header",
+                "required": true,
+              },
+              {
+                "id": "body",
+                "type": "text",
+                "title": "Body",
+                "required": true,
+              },
+              {
+                "id": "canvasList",
+                "type": "dropdown",
+                "title": "Canvas",
+                "required": true,
+                "options": [
+                  {
+                    "id": "1",
+                    "name": "Canvas 1",
+                  },
+                  {
+                    "id": "2",
+                    "name": "Canvas 2",
+                  },
+                ]
+              }
+            ]
+          ]
+        },
+        "user_config": [
+          {
+            "baseType": "",
+            "method": "",
+            "url": "",
+            "header": "",
+            "body": "",
+            "canvasList": ""
+          }
+        ]
       }
     ]
   },

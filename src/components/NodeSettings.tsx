@@ -131,7 +131,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     // module.arraySupported
     // module.user_config
     const config = userConfig[idx];
-    const {id, type, title, description, options, watchOn, dependentOn, sourceType} = field;
+    const {id, type, title, description, options, watchOn, dependentOn, sourceType, showOn} = field;
     let parentNodeEdges = [];
     let sourceOptions = [];
     // console.log({field, idx, watchOn, dependentOn, module, userConfig, config, sourceType, edges});
@@ -192,9 +192,12 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       }))
     }
 
+    const showOnValue = showOn ? userConfig[idx][showOn.split('.')[0]] : '';
+    // console.log({ field, showOn, showOnValue });
+    
     switch (type) {
       case 'string':
-        return (
+        return !showOn || (showOn?.split('.')[1] === showOnValue) ? (
           <TextField
             fullWidth
             label={title} 
@@ -205,9 +208,24 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
             placeholder={description} 
             size="small"
           />
-        );
+        ) : null;
+      case 'textarea':
+        return !showOn || (showOn?.split('.')[1] === showOnValue) ? (
+          <TextField
+            id="outlined-multiline-static"
+            fullWidth
+            label={title} 
+            value={config[id]}
+            onChange={(e) => {
+              handleChange(e.target.value)
+            }}
+            placeholder={description} 
+            multiline
+            rows={4}
+          />
+        ) : null;
       case 'number':
-        return (
+        return !showOn || (showOn?.split('.')[1] === showOnValue) ? (
           <TextField
             type="number"
             fullWidth
@@ -219,9 +237,9 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
             placeholder={description} 
             size="small"
           />
-        );
+        ) : null;
       case 'checkbox':
-        return (
+        return !showOn || (showOn?.split('.')[1] === showOnValue) ? (
           <FormGroup>
             <FormControlLabel
               control={
@@ -235,12 +253,12 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
               label={title}
             />
           </FormGroup>
-        );
+        ) : null;
       case 'dropdown':
         const updatedOptions = sourceType ? sourceOptions : options;
         // const updatedValue = sourceType ? config[id] && config[id].split('-')[1].trim() : config[id];
         
-        return (
+        return !showOn || (showOn?.split('.')[1] === showOnValue) ? (
           <FormControl fullWidth size="small">
             <InputLabel id="demo-simple-select-label">{title}</InputLabel>
             <Select
@@ -258,9 +276,9 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
               {updatedOptions?.map((opt, id) =>  <MenuItem key={id} value={opt.id}>{opt.name}</MenuItem>)}
             </Select>
           </FormControl>
-        )
+        ) : null
       case 'upload':
-        return (
+        return !showOn || (showOn?.split('.')[1] === showOnValue) ? (
           <Button
             component="label"
             role={undefined}
@@ -278,7 +296,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
               multiple
             />
           </Button>
-        )
+        ) : null
       default:
         return null;
     }
