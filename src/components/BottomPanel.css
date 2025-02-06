@@ -131,3 +131,27 @@
     background-color: #fff;
     max-height: 24px;
 }
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+  
+.thinking-loader {
+display: flex;
+gap: 5px;
+}
+
+.thinking-loader span {
+width: 8px;
+height: 8px;
+background-color: #008080;
+border-radius: 50%;
+display: inline-block;
+animation: blink 1.4s infinite ease-in-out both;
+}
+
+.thinking-loader span:nth-child(1) { animation-delay: 0s; }
+.thinking-loader span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-loader span:nth-child(3) { animation-delay: 0.4s; }

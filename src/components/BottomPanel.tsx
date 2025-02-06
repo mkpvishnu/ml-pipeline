@@ -116,7 +116,13 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
       case 'logs':
         return (
           <pre>
-            <div id="output">{content}</div>
+            <div id="output">{content}
+            <div className="thinking-loader">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
           </pre>
         );
 
@@ -127,6 +133,13 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
               {history?.map((h, index) => (
                 <div key={index}>{h}</div>
               ))}
+              {isCompleted ? null : (
+                <div className="thinking-loader">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              )}
             </pre>
           {isCompleted && <p>Process Completed ✅</p>}
           </div>
