@@ -23,6 +23,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
 
   useEffect(() => {
     if (run && canvasId) {
+      setContent(''); // Clear content when a new run is selected
       const fetchStream = async () => {
         try {
           // const response = await fetch(`${DOMAIN}/api/v1/stream/${run}/stream`); // Replace with your URL
@@ -82,7 +83,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           console.log(`WORKFLOW STATUS ----- ${data.status}`);
           setHistory((prevHistory) => [
             ...prevHistory,
-            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message}: ${value.status}`),
+            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message} ---> ${JSON.stringify(value.detailed_output?.output || {})}: ${value.status}`),
           ]);
           if (data.status === "COMPLETED" || data.status === "FAILED") {
             setIsCompleted(true);
@@ -98,6 +99,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
     };
 
     if (run && canvasId && !intervalRef.current) {
+      setHistory([]);
       intervalRef.current = setInterval(fetchHistory, 1000);
       fetchHistory(); // Call immediately instead of waiting 1 second
     }
@@ -116,7 +118,14 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
       case 'logs':
         return (
           <pre>
-            <div id="output">{content}</div>
+            <div id="output">{content}
+            <div className="thinking-loader">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
           </pre>
         );
 
@@ -127,6 +136,14 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
               {history?.map((h, index) => (
                 <div key={index}>{h}</div>
               ))}
+              {isCompleted ? null : (
+                <div className="thinking-loader">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              )}
             </pre>
           {isCompleted && <p>Process Completed ✅</p>}
           </div>
@@ -155,7 +172,9 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
         <div className="tabs">
           <button
             className={`tab ${activeBottomTab === 'logs' ? 'active' : ''}`}
-            onClick={() => setActiveBottomTab('logs')}
+            onClick={() => {
+              setActiveBottomTab('logs')
+            }}
           >
             <FiList className="icon" />
             <span>Logs</span>

@@ -27,6 +27,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code and configuration
 COPY backend/ backend/
 COPY README.md .
+COPY UserConfigAdaptor.py .
 # COPY alembic.ini .
 # COPY migrations/ migrations/
 

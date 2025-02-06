@@ -11,6 +11,7 @@ import useStore from '../store';
 import api from '../services/api';
 import CreateDrawer from './CreateDrawer';
 import './TopBar.css';
+import logo from '../images/logo.png';
 
 const TopBar: React.FC = () => {
   const { currentCanvas, setLoading } = useStore();
@@ -44,6 +45,7 @@ const TopBar: React.FC = () => {
   return (
     <div className="top-bar">
       <div className="left-actions">
+        <img src={logo} alt="Freddy" height={32} /> <span className='product-name'>Freshflow</span>
         {/* <div className="action-group">
           <button 
             className="btn btn-icon tooltip-wrapper" 
