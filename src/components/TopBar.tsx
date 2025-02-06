@@ -44,7 +44,7 @@ const TopBar: React.FC = () => {
   return (
     <div className="top-bar">
       <div className="left-actions">
-        <div className="action-group">
+        {/* <div className="action-group">
           <button 
             className="btn btn-icon tooltip-wrapper" 
             onClick={() => setCreateType('group')}
@@ -66,7 +66,7 @@ const TopBar: React.FC = () => {
             <FiBox className="icon" />
             <span className="tooltip-text">New Module</span>
           </button>
-        </div>
+        </div> */}
       </div>
 
       <div className="canvas-actions">

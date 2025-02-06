@@ -15,6 +15,8 @@ import InputLabel from '@mui/material/InputLabel';
 import AddIcon from '@mui/icons-material/Add';
 import Grid from '@mui/material/Grid2';
 import { DOMAIN, ACCOUNT_ID } from '../constants/app';
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
 
 interface NodeSettingsProps {
   nodeId: string;
@@ -248,17 +250,13 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     }
   };
 
-  if (isLoading) {
-    return <div className="node-settings">Loading...</div>;
-  }
-
-  if (error || !module) {
-    return (
-      <div className="node-settings">
-        <div className="error-message">{error || 'Module not found'}</div>
-      </div>
-    );
-  }
+  // if (error || !module) {
+  //   return (
+  //     <div className="node-settings">
+  //       <div className="error-message">{error || 'Module not found'}</div>
+  //     </div>
+  //   );
+  // }
 
   const addSet = () => {
     const localUpdatedModule = {
@@ -312,64 +310,75 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       </div>
 
       <div className="node-settings-content">
-        <form className="schema-form">
-          <div className="form-group">
-            <TextField
-              label={"Name"} 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              fullWidth
-              size="small"
-            />
-          </div>
-
-          <div className="form-group">
-            <TextField
-              multiline
-              label={"Description"} 
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              size="small"
-            />
-          </div>
-
-          {updatedModule.config_schema && updatedModule.config_schema.fields.map((field, idx) => (
-            <div key={idx}>
-              <div className='mb'>
-                {updatedModule.config_schema.fields.length > 1 ? `Record ${idx +1}` : null}
-              </div>
-              {field.map((f, id) => (
-                <div className="form-group" key={id}>
-                  {/* <div className="schema-field-header">
-                    <div className="schema-field-title">{schema.title || key}</div>
-                    {schema.description && (
-                      <div className="schema-field-description">{schema.description}</div>
-                    )}
-                  </div> */}
-                  <Box
-                    noValidate
-                    autoComplete="off"
-                  >
-                    
-                    {renderSchemaField(
-                      f,
-                      idx,
-                    )}
-                  </Box>
-                </div>
-              ))}
+        {isLoading ? (
+          <Stack spacing={1}>
+          <Skeleton variant="text" width={64} />
+          <Skeleton variant="rounded" height={40} />
+          <Skeleton variant="text" width={64} />
+          <Skeleton variant="rounded" height={40} />
+          <Skeleton variant="text" width={64} />
+          <Skeleton variant="rounded" height={40} />
+        </Stack>
+        ) : (
+          <form className="schema-form">
+            <div className="form-group">
+              <TextField
+                label={"Name"} 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                fullWidth
+                size="small"
+              />
             </div>
-          ))}
-          <Grid container spacing={2}>
-            {updatedModule.arraySupported && (
-              <Grid offset={{ md: 'auto' }}>
-                <Button startIcon={<AddIcon />} variant="contained" onClick={addSet}>Add</Button>
-              </Grid>
-            )}
-          </Grid>
-        </form>
+
+            <div className="form-group">
+              <TextField
+                multiline
+                label={"Description"} 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </div>
+
+            {updatedModule.config_schema && updatedModule.config_schema.fields.map((field, idx) => (
+              <div key={idx}>
+                <div className='mb'>
+                  {updatedModule.config_schema.fields.length > 1 ? `Record ${idx +1}` : null}
+                </div>
+                {field.map((f, id) => (
+                  <div className="form-group" key={id}>
+                    {/* <div className="schema-field-header">
+                      <div className="schema-field-title">{schema.title || key}</div>
+                      {schema.description && (
+                        <div className="schema-field-description">{schema.description}</div>
+                      )}
+                    </div> */}
+                    <Box
+                      noValidate
+                      autoComplete="off"
+                    >
+                      
+                      {renderSchemaField(
+                        f,
+                        idx,
+                      )}
+                    </Box>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <Grid container spacing={2}>
+              {updatedModule.arraySupported && (
+                <Grid offset={{ md: 'auto' }}>
+                  <Button startIcon={<AddIcon />} variant="contained" onClick={addSet}>Add</Button>
+                </Grid>
+              )}
+            </Grid>
+          </form>
+        )}
       </div>
 
       <div className="node-settings-footer">
