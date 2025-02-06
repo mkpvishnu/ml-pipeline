@@ -108,13 +108,14 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       .then(data => {
         console.log('Success:', data);
         setModule(data);
-        setUpdatedModule({
+        const sss = {
           ...data,
           config_schema: {
             ...data.config_schema,
             ...(data.config_schema.fields.length === data.user_config.length ? {} : { fields : Array(data.user_config.length - 1).fill([...data.config_schema.fields[0]]) })
           }
-        });
+        }
+        setUpdatedModule(sss);
         setName(data.name);
         setDescription(data.description || '');
         setUserConfig(data.user_config || []);
