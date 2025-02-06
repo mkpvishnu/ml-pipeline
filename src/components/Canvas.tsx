@@ -36,6 +36,12 @@ const nodeTypes: NodeTypes = {
   custom: CustomNode
 };
 
+const WORKFLOW_COLOR = {
+  COMPLETED: 'green',
+  FAILED: 'red',
+  IN_PROGRESS: 'orange',
+}
+
 const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run, setRun, history}) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -120,19 +126,25 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
       // show the state of all the nodes
       console.log({ nodes, history });
       setNodes((prevItems) =>
-        prevItems.map((item) => ({
-          ...item, 
-          data: {
-            ...item.data,
-            label: (
-             <div className='node-parent'>
-               <p className='node-parent-name'>{item.data?.name}</p>
-               <p className='node-state published'>{item.data.status}</p>
-               <p className='node-workflow-status'>{history.find(h => h.split('---->')[0].trim() === item.data.name)?.split(':')[1]}</p>
-             </div>
-            ) 
-         }
-        }))
+        prevItems.map((item) => {
+          const WORKFLOW_STATUS = history.find(h => h.split('---->')[0].trim() == item.data.id)?.split('::')[1].trim();
+          return ({
+            ...item, 
+            data: {
+              ...item.data,
+              label: (
+               <div className='node-parent'>
+                 <p className='node-parent-name'>{item.data?.name}</p>
+                 <p className='node-state published'>{item.data.status}</p>
+                 {/* <p className='node-workflow-status'>{WORKFLOW_STATUS}</p> */}
+               </div>
+              ) 
+           },
+           style: {
+            border: `1px solid ${WORKFLOW_COLOR[WORKFLOW_STATUS]}`
+          },
+          })
+        })
       );
     }
   }, [run, canvasId, history])

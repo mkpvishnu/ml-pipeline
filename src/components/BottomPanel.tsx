@@ -83,7 +83,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, canvasId, hist
           console.log(`WORKFLOW STATUS ----- ${data.status}`);
           setHistory((prevHistory) => [
             ...prevHistory,
-            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message} ---> ${JSON.stringify(value.detailed_output?.output || {})}: ${value.status}`),
+            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message} ---> ${JSON.stringify(value.detailed_output?.output || {})} :: ${value.status}`),
           ]);
           if (data.status === "COMPLETED" || data.status === "FAILED") {
             setIsCompleted(true);
