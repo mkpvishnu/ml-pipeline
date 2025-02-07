@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
-
 from backend.api.dependencies import get_db, validate_account_id
 from backend.crud import group as crud
 from backend.crud import module as crud_module
@@ -50,9 +49,11 @@ async def list_groups(
             skip=0,
             limit=100
         )
+        
         group_dict = {
             "id": group.id,
             "name": group.name,
+            "icon_url": group.icon_url,
             "description": group.description,
             "account_id": group.account_id,
             "status": group.status,
