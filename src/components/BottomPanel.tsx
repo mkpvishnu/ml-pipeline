@@ -76,27 +76,33 @@ const BottomPanel: React.FC<BottomPanelProps> = ({ expanded, run, setRun, canvas
           accept: "application/json",
         },
       })
-        .then((response) => response.json())
-        .then((data) => {
-          // console.log('fetch history data', { data });
-          setHistory([]);
-          console.log(`WORKFLOW STATUS ----- ${data.status}`);
-          setHistory((prevHistory) => [
-            ...prevHistory,
-            ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message} ---> ${JSON.stringify(value.detailed_output?.output || {})} :: ${value.status}`),
-          ]);
-          if (data.status === "COMPLETED" || data.status === "FAILED") {
-            setIsCompleted(true);
-            setRun('');
-            clearInterval(intervalRef.current); // Correctly clear interval
-            intervalRef.current = null; // Reset ref
-            console.log('cleared');
-          }
-        })
-        .catch((error) => {
-          console.error('Error:', error);
-          setHistory((prevHistory) => [...prevHistory, "Error fetching data"]);
-        });
+      .then(response => {
+        if (!response.ok) { 
+          // If server returns an error status (e.g., 500)
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // console.log('fetch history data', { data });
+        setHistory([]);
+        console.log(`WORKFLOW STATUS ----- ${data.status}`);
+        setHistory((prevHistory) => [
+          ...prevHistory,
+          ...Object.entries(data.modules).map(([key, value]) => `${key} ----> ${value.brief_output?.message} ---> ${JSON.stringify(value.detailed_output?.output || {})} :: ${value.status}`),
+        ]);
+        if (data.status === "COMPLETED" || data.status === "FAILED") {
+          setIsCompleted(true);
+          setRun('');
+          clearInterval(intervalRef.current); // Correctly clear interval
+          intervalRef.current = null; // Reset ref
+          console.log('cleared');
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        setHistory((prevHistory) => [...prevHistory, "Error fetching data"]);
+      });
     };
 
     if (run && canvasId && !intervalRef.current) {

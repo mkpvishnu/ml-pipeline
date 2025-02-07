@@ -58,7 +58,13 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
         'account-id': ACCOUNT_ID,
         accept: 'application/json',
       },
-    }).then(response => response.json())
+    }).then(response => {
+      if (!response.ok) { 
+        // If server returns an error status (e.g., 500)
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       // console.log('Success:', data);
       setGroups(data)
@@ -83,7 +89,13 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
           'account-id': ACCOUNT_ID,
           accept: 'application/json',
         },
-      }).then(response => response.json())
+      }).then(response => {
+        if (!response.ok) { 
+          // If server returns an error status (e.g., 500)
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(data => {
         // console.log('Success:', data);
         setListCanvas(data)
@@ -192,19 +204,19 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
         'account-id': ACCOUNT_ID
       }
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json(); // If the API returns a response
-      })
-      .then(data => {
-        console.log('Delete successful:', data);
-        // refresh the groups list
-        fetchGroupsWithModules();
-      })
-      .catch(error => console.error('Error:', error))
-      .finally(() => setOpen(null))
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json(); // If the API returns a response
+    })
+    .then(data => {
+      console.log('Delete successful:', data);
+      // refresh the groups list
+      fetchGroupsWithModules();
+    })
+    .catch(error => console.error('Error:', error))
+    .finally(() => setOpen(null))
   }
 
   // if (isLoading) {

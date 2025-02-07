@@ -66,7 +66,13 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         'account-id': ACCOUNT_ID,
         accept: 'application/json',
       },
-    }).then(response => response.json())
+    }).then(response => {
+      if (!response.ok) { 
+        // If server returns an error status (e.g., 500)
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       console.log('Success:', data);
       // setCanvasId(data.id);
@@ -220,7 +226,13 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         ...node,
         "parent_module_id": 0
       })
-    }).then(response => response.json())
+    }).then(response => {
+      if (!response.ok) { 
+        // If server returns an error status (e.g., 500)
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       console.log('Success:', data);
       // once save, replace the above response id to sync the selected node
@@ -304,7 +316,13 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         accept: 'application/json',
       },
       body: JSON.stringify(payload)
-    }).then(response => response.json())
+    }).then(response => {
+      if (!response.ok) { 
+        // If server returns an error status (e.g., 500)
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       console.log('Success:', data);
       setCanvasId(data.id);
@@ -364,7 +382,13 @@ const CanvasFlow: React.FC = ({canvasId, setCanvasId, tabValue, setTabValue, run
         accept: 'application/json',
         'canvas-id': canvasId
       },
-    }).then(response => response.json())
+    }).then(response => {
+      if (!response.ok) { 
+        // If server returns an error status (e.g., 500)
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
     .then(data => {
       // ACTUAL
       // setRun(data.id);

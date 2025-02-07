@@ -104,7 +104,13 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
           'group-id': groupId,
           accept: 'application/json',
         },
-      }).then(response => response.json())
+      }).then(response => {
+        if (!response.ok) { 
+          // If server returns an error status (e.g., 500)
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(data => {
         console.log('Success:', data);
         setModule(data);
