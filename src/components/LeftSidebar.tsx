@@ -7,7 +7,8 @@ import {
   FiLoader,
   FiEdit2,
   FiTrash2,
-  FiMoreVertical 
+  FiMoreVertical ,
+  FiCopy
 } from 'react-icons/fi';
 import useStore from '../store';
 // import api from '../services/api';
@@ -48,6 +49,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
   const [error, setError] = useState<string | null>(null);
   const [listCanvas, setListCanvas] = useState([]);
   const [open, setOpen] = React.useState(null);
+  const [openC, setOpenC] = React.useState(null);
 
   const { shouldRerender } = useApiRender();
 
@@ -81,33 +83,33 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
     });
   };
 
-  useEffect(() => {
-    const fetchCanvas = () => {
-      fetch(`${DOMAIN}/api/v1/canvas/?skip=0&limit=100`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'account-id': ACCOUNT_ID,
-          accept: 'application/json',
-        },
-      }).then(response => {
-        if (!response.ok) { 
-          // If server returns an error status (e.g., 500)
-          throw new Error(`Server error: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        // console.log('Success:', data);
-        setListCanvas(data)
-      }).catch((error) => {
-        console.error('Error fetching canvas:', error);
-        setError('Failed to load canvas');
-        setListCanvas([]);
-      }).finally(() => {
-        setIsLoading(false);
-      });
-    }
+  const fetchCanvas = () => {
+    fetch(`${DOMAIN}/api/v1/canvas/?skip=0&limit=100`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'account-id': ACCOUNT_ID,
+        accept: 'application/json',
+      },
+    }).then(response => {
+      if (!response.ok) { 
+        // If server returns an error status (e.g., 500)
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      // console.log('Success:', data);
+      setListCanvas(data)
+    }).catch((error) => {
+      console.error('Error fetching canvas:', error);
+      setError('Failed to load canvas');
+      setListCanvas([]);
+    }).finally(() => {
+      setIsLoading(false);
+    });
+  }
 
+  useEffect(() => {
     setIsLoading(true);
     if (tabValue === 0) {
       fetchGroupsWithModules();
@@ -258,6 +260,53 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
     setTabValue(0);
   }
 
+  const onCanvasCopy = (e, value) => {
+    e.stopPropagation();
+    fetch(`${DOMAIN}/api/v1/canvas/${value}/duplicate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'account-id': ACCOUNT_ID,
+        accept: 'application/json',
+      },
+    }).then(response => {
+      if (!response.ok) { 
+        // If server returns an error status (e.g., 500)
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(() => {
+      fetchCanvas();
+    }).catch((error) => {
+      console.error('Error:', error);
+    }).finally(() => {});
+  }
+
+  const handleDeleteCanvas = () => {
+    fetch(`${DOMAIN}/api/v1/canvas/${openC.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+        'account-id': ACCOUNT_ID
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json(); // If the API returns a response
+    })
+    .then(data => {
+      console.log('Delete successful:', data);
+      // refresh the groups list
+      fetchCanvas();
+    })
+    .catch(error => console.error('Error:', error))
+    .finally(() => setOpenC(null))
+  }
+
   const renderTabContent = () => {
     if(isLoading) {
       return (
@@ -314,7 +363,7 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
                       <div className="module-content">
                         {/* <FiBox className="icon" /> */}
                         <img src={module.icon_url} height="16" width="16" />
-                        <span className="module-name">{module.name}</span>
+                        <div className="module-name">{module.name}</div>
                       </div>
                       {module.type === 'custom' ? (
                         <div className="module-actions">
@@ -362,7 +411,14 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
     }
     return (
       <div className="groups-container">
-        {listCanvas.map(l => <button key={l.id} className='canvas-btn' onClick={() => onCanvasClick(l.id)}>{l.name}</button> )}
+        {listCanvas.map(l =>
+           <button key={l.id} className='canvas-btn' onClick={() => onCanvasClick(l.id)}>
+            <div className='canvas-text'>{l.name}</div>
+           <div className='canvas-btn-actions'>
+              <div className='canvas-btn-delete' onClick={(e) => onCanvasCopy(e, l.id)}><FiCopy className="icon" /></div>
+              <div className='canvas-btn-delete' onClick={(e) => { e.stopPropagation(); setOpenC({id: l.id, name: l.name})}}><FiTrash2 className="icon" /></div> 
+           </div>
+           </button> )}
       </div>
     )
   }
@@ -435,6 +491,27 @@ const LeftSidebar: React.FC = ({ canvasId, setCanvasId, tabValue, setTabValue })
             Cancel
           </Button>
           <Button onClick={handleDeleteModule}>Delete</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(openC?.id)}
+        onClose={() => setOpenC(null)}
+        aria-labelledby="draggable-dialog-title"
+      >
+        <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
+          Delete module
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure want to delete the {openC?.name}?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={() => setOpenC(null)}>
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteCanvas}>Delete</Button>
         </DialogActions>
       </Dialog>
     </div>

@@ -108,6 +108,10 @@
 
 .module-name {
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 145px;
 }
 
 .module-actions {
@@ -249,10 +253,33 @@
   color: rgb(48, 55, 65);
   width: 100%;
   line-height: 21px;
+  text-align: left;
   font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+.canvas-btn-actions {
+  display: flex;
+  margin-left: auto;
+  gap: 8px;
+}
+
+.canvas-btn .canvas-btn-delete {
+  display: none;
 }
 
 .canvas-btn:hover {
   color: hsl(200, 10%, 4%);
   background-color: hsl(215, 15%, 97%);
+}
+
+.canvas-btn:hover .canvas-btn-delete {
+  display: flex;
+  align-self: center;
+}
+
+.canvas-text {
+  white-space: nowrap;   /* Prevents text from wrapping */
+  overflow: hidden;      /* Hides overflowing text */
+  text-overflow: ellipsis; /* Adds "..." when text is cut off */
+  width: 200px; /* Set a width to see the effect */
 }
