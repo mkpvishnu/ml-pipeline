@@ -2,6 +2,7 @@ from typing import List, Optional, Dict, Any, Union
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
+import copy
 
 from backend.models.canvas import Canvas
 from backend.schemas.canvas import CanvasCreate, CanvasUpdate
@@ -140,4 +141,28 @@ async def delete(
         await db.delete(canvas)
         await db.commit()
         return canvas
-    return None 
+    return None
+
+async def duplicate(
+    db: AsyncSession,
+    *,
+    db_obj: Canvas,
+    account_id: str
+) -> Canvas:
+    """Create a duplicate of an existing canvas"""
+    # Create a copy of the canvas configuration
+    module_config = copy.deepcopy(db_obj.module_config) if db_obj.module_config else {}
+    
+    # Create new canvas with copied data
+    new_canvas = Canvas(
+        name=f"{db_obj.name} (Copy)",
+        description=db_obj.description,
+        module_config=module_config,
+        account_id=account_id,
+        status=1
+    )
+    
+    db.add(new_canvas)
+    await db.commit()
+    await db.refresh(new_canvas)
+    return new_canvas 

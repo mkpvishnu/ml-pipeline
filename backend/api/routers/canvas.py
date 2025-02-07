@@ -140,4 +140,29 @@ async def delete_canvas(
         canvas_id=canvas_id
     )
     await crud_canvas.soft_delete(db=db, db_obj=canvas)
-    return {"status": "success"} 
+    return {"status": "success"}
+
+@router.post("/{canvas_id}/duplicate", response_model=CanvasResponse)
+async def duplicate_canvas(
+    *,
+    db: AsyncSession = Depends(get_db),
+    canvas_id: str,
+    account_id: Annotated[str, Header()],
+    _: str = Depends(validate_account_id)
+):
+    """Create a duplicate of an existing canvas"""
+    # Get the source canvas
+    canvas = await crud_canvas.get_by_account_and_id(
+        db,
+        account_id=account_id,
+        canvas_id=canvas_id
+    )
+    if not canvas:
+        raise HTTPException(status_code=404, detail="Canvas not found")
+    
+    # Create duplicate
+    return await crud_canvas.duplicate(
+        db=db,
+        db_obj=canvas,
+        account_id=account_id
+    ) 
