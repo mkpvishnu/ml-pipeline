@@ -94,8 +94,11 @@ async def update(
     for field, value in obj_in.items():
         if field == "status" and value == 0:
             setattr(db_obj, "deleted_at", datetime.utcnow())
-        setattr(db_obj, field, value)
-    
+        elif field == "name":
+            continue
+        else:
+            setattr(db_obj, field, value)
+
     db.add(db_obj)
     await db.commit()
     await db.refresh(db_obj)
